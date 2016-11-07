@@ -7,7 +7,7 @@ import gi  # isort:skip
 gi.require_version('Gtk', '3.0')  # isort:skip
 from gi.repository import Gtk  # isort:skip
 
-from qubesmanager.models import LABELS, DomainModel, PropertiesModel
+from qubesmanager.models.qubes import LABELS, DomainModel, PropertiesModel
 
 
 class PropertiesDecorator():

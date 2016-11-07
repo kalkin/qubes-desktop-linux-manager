@@ -21,16 +21,17 @@
 ''' Data Models '''
 import dbus
 
+from qubesmanager.models.dbus import ObjectManager, Properties, _DictKey
 from typing import Any  # pylint: disable=unused-import
-
-from .base import ObjectManagerModel, PropertiesModel, _DictKey
 
 # pylint: disable=too-few-public-methods,too-many-ancestors
 
 
-class Label(PropertiesModel):
+class Label(Properties):
     ''' Wrapper around `org.qubes.Label` Interface '''
-    pass
+
+    def _setup_signals(self):
+        pass
 
 
 class _Singleton(type):
@@ -44,8 +45,9 @@ class _Singleton(type):
         return cls._instances[cls]
 
 
-class LabelsModel(ObjectManagerModel, metaclass=_Singleton):
+class LabelsModel(ObjectManager):
     ''' Wraper around `org.qubes.Labels1` '''
+    __metaclass__ = _Singleton
 
     def __init__(self):
         bus = dbus.SessionBus()
@@ -55,11 +57,14 @@ class LabelsModel(ObjectManagerModel, metaclass=_Singleton):
             name = key.split('/')[-1].upper()
             setattr(self, name, value)
 
+    def _setup_signals(self):
+        pass
+
 
 LABELS = LabelsModel()
 
 
-class DomainModel(PropertiesModel):
+class DomainModel(Properties):
     ''' Wrapper around `org.qubes.Domain` Interface '''
 
     def __init__(self, proxy: dbus.proxies.ProxyObject,
@@ -80,8 +85,11 @@ class DomainModel(PropertiesModel):
     def __setitem__(self, key: _DictKey, value: Any) -> None:
         pass
 
+    def _setup_signals(self):
+        pass
 
-class DomainManagerModel(PropertiesModel, ObjectManagerModel):
+
+class DomainManagerModel(Properties, ObjectManager):
     ''' Wraper around `org.qubes.DomainManager1` '''
     _metaclass__ = _Singleton
 
@@ -90,6 +98,9 @@ class DomainManagerModel(PropertiesModel, ObjectManagerModel):
         proxy = bus.get_object('org.qubes.DomainManager1',
                                '/org/qubes/DomainManager1')
         super(DomainManagerModel, self).__init__(proxy=proxy, cls=DomainModel)
+
+    def _setup_signals(self):
+        pass
 
 
 DOMAINS = DomainManagerModel()

@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 ''' A menu listing domains '''
 
 import signal
 import sys
+
+import dbus.mainloop.glib
+dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+
 
 import qubesmanager.decorators
 from qubesmanager.models import DOMAINS
