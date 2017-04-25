@@ -10,7 +10,7 @@ dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
 
 import qubesmanager.decorators
-from qubesmanager.models import DOMAINS
+from qubesmanager.models.qubes import DOMAINS
 
 import gi  # isort:skip
 gi.require_version('Gtk', '3.0')  # isort:skip

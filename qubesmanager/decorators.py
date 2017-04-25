@@ -7,7 +7,7 @@ import gi  # isort:skip
 gi.require_version('Gtk', '3.0')  # isort:skip
 from gi.repository import Gtk  # isort:skip
 
-from qubesmanager.models.qubes import LABELS, DomainModel, PropertiesModel
+from qubesmanager.models.qubes import DomainModel, LABELS 
 
 
 class PropertiesDecorator():
@@ -15,7 +15,7 @@ class PropertiesDecorator():
 
     # pylint: disable=too-few-public-methods
 
-    def __init__(self, obj: PropertiesModel, margins=(5, 5)) -> None:
+    def __init__(self, obj, margins=(5, 5)) -> None:
         self.obj = obj
         self.margin_left = margins[0]
         self.margin_right = margins[1]
