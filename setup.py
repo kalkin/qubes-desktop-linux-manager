@@ -13,7 +13,7 @@ setup(name='qui',
       package='qui',
       entry_points={
           'console_scripts': ['domains_table = qui.domains_table:main',
-          'domains_indicators = qui.domains_indicator:main',
-          'device_indicator = qui.device_indicator:main']
+          'domains_indicators = qui.tray.domains:main',
+          'device_indicator = qui.tray.devices:main']
       },
       packages=setuptools.find_packages())
