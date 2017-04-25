@@ -21,7 +21,7 @@
 ''' Data Models '''
 import dbus
 
-from qubesmanager.models.dbus import ObjectManager, Properties, _DictKey
+from qui.models.dbus import ObjectManager, Properties, _DictKey
 from typing import Any  # pylint: disable=unused-import
 
 # pylint: disable=too-few-public-methods,too-many-ancestors

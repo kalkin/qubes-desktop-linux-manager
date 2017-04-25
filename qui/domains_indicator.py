@@ -9,8 +9,8 @@ import dbus.mainloop.glib
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
 
-import qubesmanager.decorators
-from qubesmanager.models.qubes import DOMAINS
+import qui.decorators
+from qui.models.qubes import DOMAINS
 
 import gi  # isort:skip
 gi.require_version('Gtk', '3.0')  # isort:skip
@@ -27,7 +27,7 @@ class DomainMenuItem(Gtk.MenuItem):
 
     def __init__(self, vm):
         super(DomainMenuItem, self).__init__()
-        decorator = qubesmanager.decorators.DomainDecorator(vm)
+        decorator = qui.decorators.DomainDecorator(vm)
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         hbox.pack_start(decorator.icon(), False, True, 0)
         hbox.pack_start(decorator.name(), True, True, 0)

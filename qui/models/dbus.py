@@ -26,7 +26,7 @@ import xml.dom.minidom
 
 import dbus
 
-import qubesmanager.models.base
+import qui.models.base
 from typing import Any, Callable, Dict, Union
 
 OBJECT_MANAGER_INTERFACE = 'org.freedesktop.DBus.ObjectManager'
@@ -36,7 +36,7 @@ PROPERTIES_CHANGED = 'PropertiesChanged'
 _DictKey = Union[str, dbus.String]  # pylint: disable=invalid-name
 
 
-class Interface(qubesmanager.models.base.Interface):
+class Interface(qui.models.base.Interface):
     ''' Represents a D-Bus Interface '''
 
     # pylint: disable=too-few-public-methods
@@ -44,18 +44,18 @@ class Interface(qubesmanager.models.base.Interface):
         name = _name(node)
         signals = {
             _attr(signal_node, 'name'):
-            qubesmanager.models.base.Signal(signal_node)
+            qui.models.base.Signal(signal_node)
             for signal_node in _children(node, 'signal')
         }
         methods = {
             _attr(method_node, 'name'):
-            qubesmanager.models.base.Method(method_node)
+            qui.models.base.Method(method_node)
             for method_node in _children(node, 'method')
         }
         super(Interface, self).__init__(name, methods, signals)
 
 
-class Model(qubesmanager.models.base.Model):
+class Model(qui.models.base.Model):
     ''' Wrapper around the `dbus.proxies.ProxyObject`.  '''
 
     # pylint: disable=too-few-public-methods
@@ -93,7 +93,7 @@ class Model(qubesmanager.models.base.Model):
             self.proxy.get_dbus_method(func_name, dbus_interface=iface_name)(*args, **kwargs)
 
 
-class Method(qubesmanager.models.base.Method):
+class Method(qui.models.base.Method):
     ''' Represents a D-Bus Method '''
 
     # pylint: disable=too-few-public-methods
@@ -103,7 +103,7 @@ class Method(qubesmanager.models.base.Method):
         super(Method, self).__init__(name=_name(method), *args)
 
 
-class Signal(qubesmanager.models.base.Signal):
+class Signal(qui.models.base.Signal):
     ''' Represents a D-Bus Signal '''
 
     def __init__(self, signal: xml.dom.minidom.Element) -> None:

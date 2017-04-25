@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-''' Decorators wrap a `qubesmanager.models.PropertiesModel` in a class
+''' Decorators wrap a `qui.models.PropertiesModel` in a class
 containing helpful representation methods.
 '''
 
@@ -7,7 +7,7 @@ import gi  # isort:skip
 gi.require_version('Gtk', '3.0')  # isort:skip
 from gi.repository import Gtk  # isort:skip
 
-from qubesmanager.models.qubes import DomainModel, LABELS 
+from qui.models.qubes import DomainModel, LABELS 
 
 
 class PropertiesDecorator():
