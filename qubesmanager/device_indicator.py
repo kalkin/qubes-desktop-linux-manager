@@ -123,34 +123,26 @@ class DeviceMenu(Gtk.Menu):
         audio_input  = IconMenuItem(label, icon)
         audio_input.set_submenu(DomainMenu(self.app, active))
         self.append(audio_input)
-        
 
 
-
-class MyIndicator:
-    def __init__(self, app):
-        self.app = app
-        self.ind = appindicator.Indicator.new(
-            'Devices Widget', "gtk-preferences",
-            appindicator.IndicatorCategory.SYSTEM_SERVICES)
-        self.ind.set_status(appindicator.IndicatorStatus.ACTIVE)
-        self.menu = DeviceMenu(app)
-        self.menu.show_all()
-        self.ind.set_menu(self.menu)
-
-
-class MyApp(Gtk.Application):
-    def __init__(self, app_name):
-        super(MyApp, self).__init__()
+class DevicesTray(Gtk.Application):
+    def __init__(self, app_name='Devices Tray'):
+        super(DevicesTray, self).__init__()
         self.name = app_name
         app = qubes.Qubes()
-        self.indicator = MyIndicator(app)
+        self.tray = appindicator.Indicator.new(
+            'Devices Widget', "gtk-preferences",
+            appindicator.IndicatorCategory.SYSTEM_SERVICES)
+        self.tray.set_status(appindicator.IndicatorStatus.ACTIVE)
+        self.menu = DeviceMenu(app)
+        self.menu.show_all()
+        self.tray.set_menu(self.menu)
 
     def run(self):
         Gtk.main()
 
 
-if __name__ == '__main__':
-    app = MyApp('Scaffold')
+def main():
+    app = DevicesTray()
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     app.run()
