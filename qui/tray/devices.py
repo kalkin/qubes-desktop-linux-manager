@@ -2,6 +2,7 @@
 import signal
 
 import qubes
+import sys
 
 import gi  # isort:skip
 gi.require_version('Gtk', '3.0')  # isort:skip
@@ -146,3 +147,6 @@ def main():
     app = DevicesTray()
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     app.run()
+
+if __name__ == '__main__':
+    sys.exit(main())
