@@ -11,4 +11,9 @@ setup(name='qubesmanager',
       license='GPL2+',
       url='https://www.qubes-os.org/',
       package='qubesmanager',
+      entry_points={
+          'console_scripts': ['domains_table = qubesmanager.domains_table:main',
+          'domains_indicators = qubesmanager.domains_indicator:main',
+          'device_indicator = qubesmanager.device_indicator:main']
+      },
       packages=setuptools.find_packages())
