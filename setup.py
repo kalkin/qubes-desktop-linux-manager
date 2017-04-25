@@ -12,8 +12,8 @@ setup(name='qui',
       url='https://www.qubes-os.org/',
       package='qui',
       entry_points={
-          'console_scripts': ['domains_table = qui.domains_table:main',
-          'domains_indicators = qui.tray.domains:main',
-          'device_indicator = qui.tray.devices:main']
+          'console_scripts': ['qui-ls = qui.domains_table:main',
+          'qui-domains = qui.tray.domains:main',
+          'qui-devices = qui.tray.devices:main']
       },
       packages=setuptools.find_packages())
