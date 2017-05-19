@@ -1,7 +1,8 @@
 # pylint: disable=missing-docstring
 import signal
 
-import qubes
+import qubesadmin
+import qubesadmin.vm
 import sys
 
 import gi  # isort:skip
@@ -94,7 +95,7 @@ class DomainMenu(Gtk.Menu):
         self.append(RadioNone(active_vm))
 
         for vm in [v for v in app.domains if not v.is_halted()]:
-            if not isinstance(vm, qubes.vm.adminvm.AdminVM):
+            if not isinstance(vm, qubesadmin.vm.AdminVM):
                 if vm.internal:
                     self.internal_domains[vm.qid] = vm    
                 else:
@@ -102,7 +103,7 @@ class DomainMenu(Gtk.Menu):
                     self.known_domains[vm.qid] = vm
 
     def add(self, vm, *args, **kwargs):
-        if isinstance(vm, qubes.vm.qubesvm.QubesVM):
+        if isinstance(vm, qubesadmin.vm.QubesVM):
             label = str(vm)
             icon = vm.label.icon
             b_act = (label == self.active_vm)
@@ -130,7 +131,7 @@ class DevicesTray(Gtk.Application):
     def __init__(self, app_name='Devices Tray'):
         super(DevicesTray, self).__init__()
         self.name = app_name
-        app = qubes.Qubes()
+        app = qubesadmin.Qubes()
         self.tray = appindicator.Indicator.new(
             'Devices Widget', "gtk-preferences",
             appindicator.IndicatorCategory.SYSTEM_SERVICES)
