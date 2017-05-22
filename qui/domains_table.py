@@ -6,8 +6,8 @@ from __future__ import print_function
 
 import signal
 
-import qubes
-import qubes.tools.qvm_ls
+import qubesadmin
+import qubesadmin.tools.qvm_ls
 
 import gi  # isort:skip
 gi.require_version('Gtk', '3.0')  # isort:skip
@@ -30,13 +30,13 @@ class ListBoxWindow(Gtk.Window):
         if args.fields:
             col_names = args.fields
         else:
-            col_names = qubes.tools.qvm_ls.formats[args.format]
+            col_names = qubesadmin.tools.qvm_ls.formats[args.format]
 
         columns = []
         for col in col_names:
             col = col.strip().upper()
-            if col in qubes.tools.qvm_ls.Column.columns:
-                columns += [qubes.tools.qvm_ls.Column.columns[col]]
+            if col in qubesadmin.tools.qvm_ls.Column.columns:
+                columns += [qubesadmin.tools.qvm_ls.Column.columns[col]]
 
         Gtk.Window.__init__(self, title="TreeView Demo")
         self.set_border_width(10)
@@ -62,10 +62,10 @@ class ListBoxWindow(Gtk.Window):
 
 
 def main(args=None):  # pylint:disable=unused-argument
-    parser = qubes.tools.qvm_ls.get_parser()
+    parser = qubesadmin.tools.qvm_ls.get_parser()
     try:
         args = parser.parse_args()
-    except qubes.exc.QubesException as e:
+    except qubesadmin.exc.QubesException as e:
         parser.print_error(e.message)
         return 1
     window = ListBoxWindow(args)
