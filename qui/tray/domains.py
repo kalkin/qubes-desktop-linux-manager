@@ -8,7 +8,7 @@ import sys
 import dbus.mainloop.glib
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
-
+# pylint: disable=wrong-import-position
 import qui.decorators
 from qui.models.qubes import DOMAINS
 

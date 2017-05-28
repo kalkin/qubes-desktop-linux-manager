@@ -50,7 +50,7 @@ class LabelsModel(ObjectManager):
     __metaclass__ = _Singleton
 
     def __init__(self):
-        bus = dbus.SessionBus()
+        bus = dbus.SessionBus()  # pylint: disable=no-member
         proxy = bus.get_object('org.qubes.Labels1', '/org/qubes/Labels1')
         super(LabelsModel, self).__init__(proxy, cls=Label)
         for key, value in self.children.items():
@@ -67,15 +67,15 @@ LABELS = LabelsModel()
 class DomainModel(Properties):
     ''' Wrapper around `org.qubes.Domain` Interface '''
 
-    def __init__(self, proxy: dbus.proxies.ProxyObject,
-                 data: dbus.Dictionary=None) -> None:
+    def __init__(self, proxy: dbus.proxies.ProxyObject,  # pylint: disable=no-member
+                 data: dbus.Dictionary=None) -> None:  # pylint: disable=no-member
         super(DomainModel, self).__init__(proxy)
 
     def __getitem__(self, key: _DictKey):
         value = super(DomainModel, self).__getitem__(key)
         if value == '':
             return None
-        if isinstance(value, dbus.ObjectPath):
+        if isinstance(value, dbus.ObjectPath):  # pylint: disable=no-member
             if value.startswith('/org/qubes/Labels1/labels/'):
                 value = LABELS.children[value]
             elif value.startswith('/org/qubes/DomainManager1/domains/'):
@@ -94,7 +94,7 @@ class DomainManagerModel(Properties, ObjectManager):
     _metaclass__ = _Singleton
 
     def __init__(self):
-        bus = dbus.SessionBus()
+        bus = dbus.SessionBus()  # pylint: disable=no-member
         proxy = bus.get_object('org.qubes.DomainManager1',
                                '/org/qubes/DomainManager1')
         super(DomainManagerModel, self).__init__(proxy=proxy, cls=DomainModel)

@@ -33,7 +33,7 @@ OBJECT_MANAGER_INTERFACE = 'org.freedesktop.DBus.ObjectManager'
 PROPERTIES_INTERFACE = 'org.freedesktop.DBus.Properties'
 PROPERTIES_CHANGED = 'PropertiesChanged'
 
-_DictKey = Union[str, dbus.String]  # pylint: disable=invalid-name
+_DictKey = Union[str, dbus.String]  # pylint: disable=invalid-name,no-member
 
 
 class Interface(qui.models.base.Interface):
@@ -43,13 +43,11 @@ class Interface(qui.models.base.Interface):
     def __init__(self, node: xml.dom.minidom.Element) -> None:
         name = _name(node)
         signals = {
-            _attr(signal_node, 'name'):
-            qui.models.base.Signal(signal_node)
+            _attr(signal_node, 'name'): qui.models.base.Signal(signal_node)
             for signal_node in _children(node, 'signal')
         }
         methods = {
-            _attr(method_node, 'name'):
-            qui.models.base.Method(method_node)
+            _attr(method_node, 'name'): qui.models.base.Method(method_node)
             for method_node in _children(node, 'method')
         }
         super(Interface, self).__init__(name, methods, signals)
@@ -60,7 +58,7 @@ class Model(qui.models.base.Model):
 
     # pylint: disable=too-few-public-methods
 
-    def __init__(self, proxy: dbus.proxies.ProxyObject) -> None:
+    def __init__(self, proxy: dbus.proxies.ProxyObject) -> None:  # pylint: disable=no-member
         self.proxy = proxy
         super(Model, self).__init__(self._init_interfaces())
 
@@ -98,8 +96,10 @@ class Method(qui.models.base.Method):
 
     # pylint: disable=too-few-public-methods
     def __init__(self, method: xml.dom.minidom.Element) -> None:
-        args = [_attr(arg, 'type') for arg in _children(method, 'arg')
-                if _attr(arg, 'direction') == 'in']
+        args = [
+            _attr(arg, 'type') for arg in _children(method, 'arg')
+            if _attr(arg, 'direction') == 'in'
+        ]
         super(Method, self).__init__(name=_name(method), *args)
 
 
@@ -116,10 +116,12 @@ class Signal(qui.models.base.Signal):
 
 class Properties(Model, collections.MutableMapping):
     ''' Provides dictionary access to a `org.freedesktop.DBus.Properties` object
-    ''' # pylint: disable=too-few-public-methods
+    ''' # pylint: disable=too-few-public-methods,too-many-ancestors
 
-    def __init__(self, proxy: dbus.proxies.ProxyObject,
-                 data: dbus.Dictionary=None, *args, **kwargs) -> None:
+    def __init__(self,
+                 proxy: dbus.proxies.ProxyObject,  # pylint: disable=no-member
+                 data: dbus.Dictionary=None,  # pylint: disable=no-member
+                 *args, **kwargs) -> None:
         super(Properties, self).__init__(proxy, *args, **kwargs)
         assert PROPERTIES_INTERFACE in self.interfaces
         if data is None:
@@ -158,13 +160,14 @@ class ObjectManager(Model):
     ''' A Model which has child models. '''
 
     # pylint: disable=too-few-public-methods
-    def __init__(self, proxy: dbus.proxies.ProxyObject,
-                 cls: type=Properties) -> None:
+    def __init__(self,
+                 proxy: dbus.proxies.ProxyObject,  # pylint: disable=no-member
+                 cls:type=Properties) -> None:
         super(ObjectManager, self).__init__(proxy)
         assert OBJECT_MANAGER_INTERFACE in self.interfaces
         child_data = self.GetManagedObjects()
         self.children = {}  # type: Dict[dbus.ObjectPath, Properties]
-        bus = dbus.SessionBus()
+        bus = dbus.SessionBus()  # pylint: disable=no-member
         for child_path, _kwargs in child_data.items():
             _data = list(_kwargs.values())[0]
             child_proxy = bus.get_object(bus_name=proxy.bus_name,
@@ -172,10 +175,10 @@ class ObjectManager(Model):
             self.children[child_proxy.object_path] = cls(child_proxy, _data)
 
     def GetManagedObjects(self):
-        ''' Wrapper arround
+        ''' Wrapper around
             'org.freedesktop.DBus.ObjectManager.GetManagedObjects'. This wrapper
             is used to keep mypy and pylint happy.
-        '''
+        '''  # pylint: disable=useless-super-delegation
         # type:ignore pylint: disable=no-member,invalid-name
         return super(ObjectManager, self).GetManagedObjects()
 
