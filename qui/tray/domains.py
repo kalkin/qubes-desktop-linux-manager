@@ -9,8 +9,8 @@ import dbus.mainloop.glib
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
 # pylint: disable=wrong-import-position
+import qubesadmin
 import qui.decorators
-from qui.models.qubes import DOMAINS
 
 import gi  # isort:skip
 gi.require_version('Gtk', '3.0')  # isort:skip
@@ -27,14 +27,18 @@ class DomainMenuItem(Gtk.MenuItem):
 
     def __init__(self, vm):
         super(DomainMenuItem, self).__init__()
+        self.vm = vm
         decorator = qui.decorators.DomainDecorator(vm)
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         hbox.pack_start(decorator.icon(), False, True, 0)
         hbox.pack_start(decorator.name(), True, True, 0)
-        hbox.pack_start(decorator.prefs_button(), False, True, 0)
-        hbox.pack_start(decorator.stop_button(), False, True, 0)
         hbox.pack_start(decorator.memory(), False, True, 0)
         self.add(hbox)
+        self.connect('activate', self.stop_vm)
+
+    def stop_vm(self, _):
+        self.vm.shutdown()
+
 
 
 class MyApp(Gtk.Application):
@@ -48,8 +52,9 @@ class MyApp(Gtk.Application):
             appindicator.IndicatorCategory.SYSTEM_SERVICES)
         self.ind.set_status(appindicator.IndicatorStatus.ACTIVE)
         self.menu = Gtk.Menu()
-        for domain in DOMAINS.children.values():
-            self.menu.add(DomainMenuItem(domain))
+        domains = qubesadmin.Qubes().domains
+        for vm in domains:
+            self.menu.add(DomainMenuItem(vm))
         self.menu.show_all()
         self.ind.set_menu(self.menu)
 

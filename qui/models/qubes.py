@@ -89,15 +89,16 @@ class DomainModel(Properties):
         pass
 
 
-class DomainManagerModel(Properties, ObjectManager):
+class DomainManagerModel():
     ''' Wraper around `org.qubes.DomainManager1` '''
     _metaclass__ = _Singleton
 
     def __init__(self):
-        bus = dbus.SessionBus()  # pylint: disable=no-member
-        proxy = bus.get_object('org.qubes.DomainManager1',
-                               '/org/qubes/DomainManager1')
-        super(DomainManagerModel, self).__init__(proxy=proxy, cls=DomainModel)
+        # bus = dbus.SessionBus()  # pylint: disable=no-member
+        # proxy = bus.get_object('org.qubes.DomainManager1',
+        #                        '/org/qubes/DomainManager1')
+        self._setup_signals()
+
 
     def _setup_signals(self):
         pass
