@@ -3,3 +3,6 @@
 - [ ] Make stop button work
 - [ ] Only show running VMs
 - [ ] Align the columns of the rows
+- [ ] Do not use D-Bus for querying domain properties. Reasons:
+  + qubeasadmin API is a better abstraction
+  + The current implementation is to slow
