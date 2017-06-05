@@ -1,7 +1,8 @@
 * TODO for =qui-domains=
 - [ ] Update it's content when domains are added or removed
 - [ ] Make stop button work
-- [ ] Only show running VMs
+- [X] Only show running VMs
+- [X] Do not show dom0
 - [ ] Align the columns of the rows
 - [ ] Do not use D-Bus for querying domain properties. Reasons:
   + qubeasadmin API is a better abstraction

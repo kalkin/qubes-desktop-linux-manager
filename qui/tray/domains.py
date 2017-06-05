@@ -40,7 +40,6 @@ class DomainMenuItem(Gtk.MenuItem):
         self.vm.shutdown()
 
 
-
 class MyApp(Gtk.Application):
     ''' Implements the Freedesktop “System Tray Protocol Specification” '''
 
@@ -53,8 +52,12 @@ class MyApp(Gtk.Application):
         self.ind.set_status(appindicator.IndicatorStatus.ACTIVE)
         self.menu = Gtk.Menu()
         domains = qubesadmin.Qubes().domains
-        for vm in domains:
-            self.menu.add(DomainMenuItem(vm))
+        active_vms = [vm for vm in domains if vm.is_running()]
+        for vm in active_vms:
+            if vm.name == 'dom0':
+                continue
+            else:
+                self.menu.add(DomainMenuItem(vm))
         self.menu.show_all()
         self.ind.set_menu(self.menu)
 
