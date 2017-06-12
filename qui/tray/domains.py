@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 ''' A menu listing domains '''
 
+import os.path
 import signal
 import sys
 
+import dbus
 import dbus.mainloop.glib
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
@@ -18,6 +20,11 @@ from gi.repository import Gtk  # isort:skip
 
 gi.require_version('AppIndicator3', '0.1')  # isort:skip
 from gi.repository import AppIndicator3 as appindicator  # isort:skip
+
+DOMAIN_MANAGER_INTERFACE = "org.qubes.DomainManager1"
+DOMAIN_MANAGER_PATH = "/org/qubes/DomainManager1"
+DOMAINS = qubesadmin.Qubes().domains
+VM_MENU = Gtk.Menu()
 
 
 class DomainMenuItem(Gtk.MenuItem):
@@ -50,16 +57,34 @@ class MyApp(Gtk.Application):
             'Qubes Widget', "qubes-logo-icon",
             appindicator.IndicatorCategory.SYSTEM_SERVICES)
         self.ind.set_status(appindicator.IndicatorStatus.ACTIVE)
-        self.menu = Gtk.Menu()
-        domains = qubesadmin.Qubes().domains
-        active_vms = [vm for vm in domains if vm.is_running()]
-        for vm in active_vms:
+        self.bus = dbus.SessionBus()
+
+        for vm in DOMAINS:
             if vm.name == 'dom0':
                 continue
-            else:
-                self.menu.add(DomainMenuItem(vm))
-        self.menu.show_all()
-        self.ind.set_menu(self.menu)
+
+            obj = self._dbus_object(vm)
+            obj.connect_to_signal("Started", lambda: self._menu_add(vm),
+                                  dbus_interface="org.qubes.Domain")
+
+            if vm.is_running():
+                self._menu_add(vm)
+
+        self.ind.set_menu(VM_MENU)
+
+    def _dbus_object(self, vm: qubesadmin.vm.QubesVM):
+        path = "%s/domains/%s" % (DOMAIN_MANAGER_PATH, vm.qid)
+        print(path)
+        return self.bus.get_object(DOMAIN_MANAGER_INTERFACE, path)
+
+    def _menu_add(self, vm: qubesadmin.vm.QubesVM):
+        widget = DomainMenuItem(vm)
+        obj = self._dbus_object(vm)
+        obj.connect_to_signal("Halted", lambda: VM_MENU.remove(widget),
+                              dbus_interface="org.qubes.Domain")
+
+        VM_MENU.add(widget)
+        VM_MENU.show_all()
 
     def run(self):  # pylint: disable=arguments-differ
         Gtk.main()
