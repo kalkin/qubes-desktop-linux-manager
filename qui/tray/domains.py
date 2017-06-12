@@ -43,6 +43,14 @@ class DomainMenuItem(Gtk.MenuItem):
         self.add(hbox)
         self.connect('activate', self.stop_vm)
 
+    def start_spinning(self):
+        # TODO
+        pass
+
+    def stop_spinning(self):
+        # TODO
+        pass
+
     def stop_vm(self, _):
         self.vm.shutdown()
 

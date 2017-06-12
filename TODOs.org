@@ -1,5 +1,6 @@
 * TODO for =qui-domains=
 - [X] Update it's content when domains are stoped or started
+- [ ] Display if domain is in transient status
 - [X] Only show running VMs
 - [X] Do not show dom0
 - [ ] Align the columns of the rows

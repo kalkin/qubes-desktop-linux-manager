@@ -46,6 +46,11 @@ class DomainDecorator(PropertiesDecorator):
         label.set_sensitive(False)
         return label
 
+    def spinner(self) -> Gtk.Spinner:
+        spinner = Gtk.Spinner()
+        self.set_margins(spinner)
+        return spinner
+
     def icon(self) -> Gtk.Image:
         ''' Returns a `Gtk.Image` containing the colored lock icon '''
         label = self.obj.label
