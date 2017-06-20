@@ -171,7 +171,8 @@ class ObjectManager(Model):
         for child_path, _kwargs in child_data.items():
             _data = list(_kwargs.values())[0]
             child_proxy = bus.get_object(bus_name=proxy.bus_name,
-                                         object_path=child_path)
+                                         object_path=child_path,
+                                         follow_name_owner_changes=True)
             self.children[child_proxy.object_path] = cls(child_proxy, _data)
 
     def GetManagedObjects(self):

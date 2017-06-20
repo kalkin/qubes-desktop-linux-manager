@@ -239,8 +239,14 @@ class DomainTray(Gtk.Application):
 
     def run(self):  # pylint: disable=arguments-differ
         for signal_name, handler_function in self.signal_callbacks.items():
-            self.domain_manager.connect_to_signal(signal_name,
-            handler_function)
+            matcher = self.domain_manager.connect_to_signal(signal_name,
+                                                            handler_function)
+
+            if signal_name not in self.signal_matches:
+                self.signal_matches[signal_name] = list()
+
+            self.signal_matches[signal_name] += [matcher]
+
 
         for vm_path, vm in self.domain_manager.children.items():
             if vm['name'] == 'dom0' or vm['state'] == 'Halted':

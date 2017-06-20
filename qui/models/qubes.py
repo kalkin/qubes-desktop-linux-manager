@@ -51,7 +51,8 @@ class LabelsModel(ObjectManager):
 
     def __init__(self):
         bus = dbus.SessionBus()  # pylint: disable=no-member
-        proxy = bus.get_object('org.qubes.Labels1', '/org/qubes/Labels1')
+        proxy = bus.get_object('org.qubes.Labels1', '/org/qubes/Labels1',
+                               follow_name_owner_changes=True)
         super(LabelsModel, self).__init__(proxy, cls=Label)
         for key, value in self.children.items():
             name = key.split('/')[-1].upper()
@@ -91,7 +92,8 @@ class DomainManager(Properties,ObjectManager):
     def __init__(self):
         self.bus = dbus.SessionBus()  # pylint: disable=no-member
         proxy = self.bus.get_object('org.qubes.DomainManager1',
-                                    '/org/qubes/DomainManager1')
+                                    '/org/qubes/DomainManager1',
+                                    follow_name_owner_changes=True)
         super().__init__(proxy, cls=Domain)
         self._setup_signals()
 
@@ -101,6 +103,8 @@ class DomainManager(Properties,ObjectManager):
                 signal_name, handler_function,
                 dbus_interface='org.qubes.DomainManager1')
 
+    def disconnect_signal(self, signal_matcher):
+        return self.bus.remove_signal_receiver(signal_matcher)
 
     def _setup_signals(self):
         pass
