@@ -256,7 +256,13 @@ class DomainTray(Gtk.Application):
             else:
                 self.show_debug_menu(DOMAIN_MANAGER_INTERFACE, vm_path)
 
+        self.connect('shutdown', self._disconnect_signals)
         Gtk.main()
+
+    def _disconnect_signals(self, _):
+        for matchers in self.signal_matches.values():
+            for matcher in matchers:
+                self.domain_manager.disconnect_signal(matcher)
 
 def indicator(tray_menu: Gtk.Menu) -> appindicator.Indicator:
     '''Helper function to setup the indicator object'''
