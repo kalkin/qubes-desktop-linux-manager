@@ -64,22 +64,17 @@ class LabelsModel(ObjectManager):
 LABELS = LabelsModel()
 
 
-class DomainModel(Properties):
+class Domain(Properties):
     ''' Wrapper around `org.qubes.Domain` Interface '''
 
     def __init__(self, proxy: dbus.proxies.ProxyObject,  # pylint: disable=no-member
                  data: dbus.Dictionary=None) -> None:  # pylint: disable=no-member
-        super(DomainModel, self).__init__(proxy)
+        super().__init__(proxy)
 
     def __getitem__(self, key: _DictKey):
-        value = super(DomainModel, self).__getitem__(key)
+        value = super().__getitem__(key)
         if value == '':
             return None
-        if isinstance(value, dbus.ObjectPath):  # pylint: disable=no-member
-            if value.startswith('/org/qubes/Labels1/labels/'):
-                value = LABELS.children[value]
-            elif value.startswith('/org/qubes/DomainManager1/domains/'):
-                value = DOMAINS.children[value]
         return value
 
     def __setitem__(self, key: _DictKey, value: Any) -> None:
@@ -89,19 +84,23 @@ class DomainModel(Properties):
         pass
 
 
-class DomainManagerModel():
+class DomainManager(Properties,ObjectManager):
     ''' Wraper around `org.qubes.DomainManager1` '''
     _metaclass__ = _Singleton
 
     def __init__(self):
-        # bus = dbus.SessionBus()  # pylint: disable=no-member
-        # proxy = bus.get_object('org.qubes.DomainManager1',
-        #                        '/org/qubes/DomainManager1')
+        self.bus = dbus.SessionBus()  # pylint: disable=no-member
+        proxy = self.bus.get_object('org.qubes.DomainManager1',
+                                    '/org/qubes/DomainManager1')
+        super().__init__(proxy, cls=Domain)
         self._setup_signals()
+
+    def connect_to_signal(self, signal_name, handler_function):
+        ''' Handy wrapper around self.proxy.connect_to_signal'''
+        return self.proxy.connect_to_signal(
+                signal_name, handler_function,
+                dbus_interface='org.qubes.DomainManager1')
 
 
     def _setup_signals(self):
         pass
-
-
-DOMAINS = DomainManagerModel()
