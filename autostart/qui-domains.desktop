@@ -1,0 +1,7 @@
+[Desktop Entry]
+Icon=qubes
+Name=Domains Tray
+Categories=System;Monitor;
+Exec=python3 -mqui.tray.domains
+Terminal=false
+Type=Application
