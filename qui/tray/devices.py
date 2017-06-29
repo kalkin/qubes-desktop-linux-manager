@@ -1,9 +1,9 @@
 # pylint: disable=missing-docstring
 import signal
+import sys
 
 import qubesadmin
 import qubesadmin.vm
-import sys
 
 import gi  # isort:skip
 gi.require_version('Gtk', '3.0')  # isort:skip
