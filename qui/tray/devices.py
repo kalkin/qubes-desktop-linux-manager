@@ -91,16 +91,12 @@ class DomainMenu(Gtk.Menu):
         self.app = app
         self.active_vm = active_vm
         self.known_domains = {}
-        self.internal_domains = {}
         self.append(RadioNone(active_vm))
 
         for vm in [v for v in app.domains if not v.is_halted()]:
             if not isinstance(vm, qubesadmin.vm.AdminVM):
-                if vm.internal:
-                    self.internal_domains[vm.qid] = vm    
-                else:
-                    self.add(vm)
-                    self.known_domains[vm.qid] = vm
+                self.add(vm)
+                self.known_domains[vm.qid] = vm
 
     def add(self, vm, *args, **kwargs):
         if isinstance(vm, qubesadmin.vm.QubesVM):
