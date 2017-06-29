@@ -19,10 +19,12 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 #
 ''' Data Models '''
+from typing import Any  # pylint: disable=unused-import
+
 import dbus
 
 from qui.models.dbus import ObjectManager, Properties, _DictKey
-from typing import Any  # pylint: disable=unused-import
+
 
 # pylint: disable=too-few-public-methods,too-many-ancestors
 
@@ -104,6 +106,33 @@ class DomainManager(Properties,ObjectManager):
                 dbus_interface='org.qubes.DomainManager1')
 
     def disconnect_signal(self, signal_matcher):
+        ''' Handy wrapper around self.bus.remove_signal_receiver '''
+        return self.bus.remove_signal_receiver(signal_matcher)
+
+    def _setup_signals(self):
+        pass
+
+
+class BlockManager(ObjectManager):
+    ''' Wraper around `org.qubes.DomainManager1` '''
+    _metaclass__ = _Singleton
+
+    def __init__(self):
+        self.bus = dbus.SessionBus()  # pylint: disable=no-member
+        proxy = self.bus.get_object('org.qubes.BlockManager1',
+                                    '/org/qubes/BlockManager1',
+                                    follow_name_owner_changes=True)
+        super().__init__(proxy, cls=Domain)
+        self._setup_signals()
+
+    def connect_to_signal(self, signal_name, handler_function):
+        ''' Handy wrapper around self.proxy.connect_to_signal'''
+        return self.proxy.connect_to_signal(
+            signal_name, handler_function,
+            dbus_interface='org.qubes.DeviceManager1')
+
+    def disconnect_signal(self, signal_matcher):
+        ''' Handy wrapper around self.bus.remove_signal_receiver '''
         return self.bus.remove_signal_receiver(signal_matcher)
 
     def _setup_signals(self):
