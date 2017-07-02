@@ -7,14 +7,15 @@ import qubesadmin.vm
 
 import gi  # isort:skip
 gi.require_version('Gtk', '3.0')  # isort:skip
-from gi.repository import Gio, Gtk  # isort:skip pylint: disable=C0413
+from gi.repository import Gtk  # isort:skip pylint:
 
 gi.require_version('AppIndicator3', '0.1')  # isort:skip
 from gi.repository import AppIndicator3 as appindicator  # isort:skip
 
+
 class RadioNone(Gtk.RadioMenuItem):
-    def __init__(self, active_vm = None):
-        super(RadioNone, self).__init__()
+    def __init__(self, active_vm=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         hbox.pack_start(self.name('None'), True, True, 0)
         hbox.set_margin_right(10)
@@ -28,9 +29,10 @@ class RadioNone(Gtk.RadioMenuItem):
         label.set_margin_left(32)
         return label
 
+
 class IconMenuItem(Gtk.MenuItem):
     def __init__(self, label, icon, *args, **kwargs):
-        super(IconMenuItem, self).__init__()
+        super().__init__(*args, **kwargs)
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         hbox.pack_start(self.icon(icon), False, True, 0)
         hbox.pack_start(self.name(label), True, True, 0)
@@ -50,9 +52,10 @@ class IconMenuItem(Gtk.MenuItem):
         set_margins(icon_img)
         return icon_img
 
+
 class RadioIconMenuItem(Gtk.RadioMenuItem):
     def __init__(self, label, icon, active=False, *args, **kwargs):
-        super(RadioIconMenuItem, self).__init__()
+        super().__init__(*args, **kwargs)
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         hbox.pack_start(self.icon(icon), False, True, 0)
         hbox.pack_start(self.name(label), True, True, 0)
@@ -75,10 +78,11 @@ class RadioIconMenuItem(Gtk.RadioMenuItem):
 
 
 class RadioDomainItem(RadioIconMenuItem):
-    def __init__(self, vm, active = False):
+    def __init__(self, vm, active=False):
         label = str(vm)
         icon = vm.label.icon
         super(RadioDomainItem, self).__init__(label, icon, active)
+
 
 def set_margins(widget):
     widget.set_margin_left(5)
@@ -144,6 +148,7 @@ def main():
     app = DevicesTray()
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     app.run()
+
 
 if __name__ == '__main__':
     sys.exit(main())
