@@ -1,4 +1,5 @@
 # pylint: disable=missing-docstring
+import os.path
 import signal
 import sys
 
@@ -11,6 +12,8 @@ from gi.repository import Gtk  # isort:skip pylint:
 
 gi.require_version('AppIndicator3', '0.1')  # isort:skip
 from gi.repository import AppIndicator3 as appindicator  # isort:skip
+
+QUBES_APP = qubesadmin.Qubes()
 
 
 class RadioNone(Gtk.RadioMenuItem):
@@ -90,41 +93,48 @@ def set_margins(widget):
 
 
 class DomainMenu(Gtk.Menu):
-    def __init__(self, app, active_vm=None, *args, **kwargs):
+    def __init__(self, device, *args, **kwargs):
         super(DomainMenu, self).__init__(*args, **kwargs)
-        self.app = app
-        self.active_vm = active_vm
+        self.active_vm = device.frontend_domain
         self.known_domains = {}
-        self.append(RadioNone(active_vm))
+        self.active_vm = device.frontend_domain
+        self.append(RadioNone(self.active_vm))
 
-        for vm in [v for v in app.domains if not v.is_halted()]:
+        for vm in [v for v in QUBES_APP.domains if not v.is_halted()]:
             if not isinstance(vm, qubesadmin.vm.AdminVM):
-                self.add(vm)
+                self.add_domain(vm)
                 self.known_domains[vm.qid] = vm
 
-    def add(self, vm, *args, **kwargs):
+    def add_domain(self, vm):
         if isinstance(vm, qubesadmin.vm.QubesVM):
             label = str(vm)
             icon = vm.label.icon
             b_act = (label == self.active_vm)
             row = RadioIconMenuItem(label, icon, b_act)
-            super(DomainMenu, self).append(row, *args, **kwargs)
+            super(DomainMenu, self).append(row)
         else:
-            super(DomainMenu, self).add(vm, *args, **kwargs)
+            super(DomainMenu, self).add(vm)
 
 
-class DeviceMenu(Gtk.Menu):
-    def __init__(self, app, *args, **kwargs):
-        super(DeviceMenu, self).__init__(*args, **kwargs)
-        self.app = app
-        self.add_icon_menu_item('Audio Input (None)', 'audio-input-microphone')
-        self.add_icon_menu_item('sdd WDC_WD10EZEX-08M2NA0 (None)', 'drive-harddisk')
-        self.add_icon_menu_item('sde SD_MMC (vault)', 'drive-removable-media', 'vault')
+class DeviceItem(Gtk.MenuItem):
 
-    def add_icon_menu_item(self, label, icon, active=None):
-        audio_input  = IconMenuItem(label, icon)
-        audio_input.set_submenu(DomainMenu(self.app, active))
-        self.append(audio_input)
+    def __init__(self, device, *args, **kwargs):
+        "docstring"
+        super(DeviceItem, self).__init__(*args, **kwargs)
+
+        vm_icon = create_icon(device.vm_icon)
+        dev_icon = create_icon(device.icon)
+        name = Gtk.Label(device.name, xalign=0)
+
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        hbox.pack_start(vm_icon, True, True, 0)
+        hbox.pack_start(name, True, True, 0)
+        hbox.pack_start(dev_icon, True, True, 0)
+        self.add(hbox)
+        submenu = DomainMenu(device)
+        self.set_submenu(submenu)
+
+
 class DeviceData():
     ''' Wraps all the data needed to display information about a device '''
 
@@ -152,19 +162,27 @@ class DeviceData():
 
 
 class DevicesTray(Gtk.Application):
-    def __init__(self, app_name='Devices Tray'):
+    def __init__(self, app_name='Devices Tray', dev_type='block'):
         super(DevicesTray, self).__init__()
         self.name = app_name
-        app = qubesadmin.Qubes()
-        self.tray = appindicator.Indicator.new(
+        self.tray_menu = Gtk.Menu()
+        self.dev_type = dev_type
+
+        self.ind = appindicator.Indicator.new(
             'Devices Widget', "gtk-preferences",
             appindicator.IndicatorCategory.SYSTEM_SERVICES)
-        self.tray.set_status(appindicator.IndicatorStatus.ACTIVE)
-        self.menu = DeviceMenu(app)
-        self.menu.show_all()
-        self.tray.set_menu(self.menu)
+        self.ind.set_status(appindicator.IndicatorStatus.ACTIVE)
+        self.ind.set_menu(self.tray_menu)
 
-    def run(self):
+    def run(self):  # pylint: disable=arguments-differ
+        for vm in QUBES_APP.domains:
+            for device in vm.devices[self.dev_type]:
+                device_data = DeviceData(device, self.dev_type)
+                menu_item = DeviceItem(device_data)
+                self.tray_menu.add(menu_item)
+
+        self.tray_menu.show_all()
+
         Gtk.main()
 
 
