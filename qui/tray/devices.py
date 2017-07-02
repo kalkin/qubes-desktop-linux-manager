@@ -168,6 +168,11 @@ class DevicesTray(Gtk.Application):
         Gtk.main()
 
 
+def create_icon(name):
+    icon_dev = Gtk.IconTheme.get_default().load_icon(name, 22, 0)
+    return Gtk.Image.new_from_pixbuf(icon_dev)
+
+
 def main():
     app = DevicesTray()
     signal.signal(signal.SIGINT, signal.SIG_DFL)
