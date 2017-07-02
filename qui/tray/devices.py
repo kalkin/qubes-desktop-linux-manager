@@ -125,6 +125,30 @@ class DeviceMenu(Gtk.Menu):
         audio_input  = IconMenuItem(label, icon)
         audio_input.set_submenu(DomainMenu(self.app, active))
         self.append(audio_input)
+class DeviceData():
+    ''' Wraps all the data needed to display information about a device '''
+
+    def __init__(self, device, dev_type):
+        self.backend_domain = device.backend_domain
+        self.frontend_domain = None
+        self.dev_type = dev_type
+        self.vm_icon = self.backend_domain.label.icon
+        self.name = "%s:%s" % (self.backend_domain.name, device.ident)
+        self.dbus_path = os.path.join('/org/qubes/DomainManager1',
+                                      str(self.backend_domain.qid), self.dev_type,
+                                      device.ident)
+
+        if self.dev_type == 'block':
+            self.icon = 'drive-removable-media'
+        else:
+            self.icon = 'network-wired-symbolic'
+
+        for vm in QUBES_APP.domains:
+            try:
+                if device in vm.devices[dev_type].attached():
+                    self.frontend_domain = vm
+            except qubesadmin.exc.QubesDaemonNoResponseError as exc:
+                print(exc, file=sys.stderr)
 
 
 class DevicesTray(Gtk.Application):
