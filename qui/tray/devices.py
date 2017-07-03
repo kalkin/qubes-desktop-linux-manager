@@ -72,7 +72,7 @@ class DeviceData():
             self.assignment.frontend_domain = None
 
 
-class DomainMenuItem(Gtk.MenuItem):
+class DomainMenuItem(Gtk.ImageMenuItem):
     def __init__(self, data: DeviceData, vm, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -88,7 +88,7 @@ class DomainMenuItem(Gtk.MenuItem):
 
         label = Gtk.Label(self.vm.name, xalign=0)
 
-        hbox.pack_start(create_icon(self.vm.label.icon), False, True, 5)
+        self.set_image(create_icon(self.vm.label.icon))
         hbox.pack_start(label, True, True, 5)
 
         if self.data.assignment.frontend_domain == self.vm:
@@ -185,7 +185,7 @@ class DomainMenu(Gtk.Menu):
         subprocess.call(['notify-send', "Simulating detachment"])
 
 
-class DeviceItem(Gtk.MenuItem):
+class DeviceItem(Gtk.ImageMenuItem):
     def __init__(self, data: DeviceData, *args, **kwargs):
         "docstring"
         super().__init__(*args, **kwargs)
@@ -195,9 +195,9 @@ class DeviceItem(Gtk.MenuItem):
         name = Gtk.Label(data.name, xalign=0)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        hbox.pack_start(vm_icon, False, True, 5)
+        self.set_image(vm_icon)
         hbox.pack_start(name, True, True, 0)
-        hbox.pack_start(dev_icon, True, True, 0)
+        hbox.pack_start(dev_icon, False, True, 0)
         self.add(hbox)
         submenu = DomainMenu(data)
         self.set_submenu(submenu)

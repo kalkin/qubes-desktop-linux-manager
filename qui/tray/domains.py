@@ -28,10 +28,8 @@ DOMAIN_MANAGER_PATH = "/org/qubes/DomainManager1"
 DBusSignalMatch = dbus.connection.SignalMatch
 
 
-def vm_label(vm):
-    decorator = qui.decorators.DomainDecorator(vm)
+def vm_label(decorator):
     hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-    hbox.pack_start(decorator.state(), False, True, 0)
     hbox.pack_start(decorator.icon(), False, True, 0)
     hbox.pack_start(decorator.name(), True, True, 0)
     hbox.pack_start(decorator.memory(), False, True, 0)
@@ -47,51 +45,58 @@ def sub_menu_hbox(name, image_name = None) -> Gtk.Widget:
     return hbox
 
 
-class ShutdownItem(Gtk.MenuItem):
+class ShutdownItem(Gtk.ImageMenuItem):
     ''' Shutdown menu Item. When activated shutdowns the domain. '''
     def __init__(self, vm):
         super().__init__()
         self.vm = vm
 
-        hbox = sub_menu_hbox("Shutdown", image_name = "media-playback-stop")
-        self.add(hbox)
+        icon = Gtk.IconTheme.get_default().load_icon('media-playback-stop', 22, 0)
+        image = Gtk.Image.new_from_pixbuf(icon)
+
+        self.set_image(image)
+        self.set_label('Shutdown')
 
         self.connect('activate', self.vm.Shutdown)
 
 
-class KillItem(Gtk.MenuItem):
+class KillItem(Gtk.ImageMenuItem):
     ''' Kill domain menu Item. When activated kills the domain. '''
     def __init__(self, vm):
         super().__init__()
         self.vm = vm
 
-        hbox = sub_menu_hbox("Kill", image_name = "media-record")
-        self.add(hbox)
+        icon = Gtk.IconTheme.get_default().load_icon('media-record', 22, 0)
+        image = Gtk.Image.new_from_pixbuf(icon)
+
+        self.set_image(image)
+        self.set_label('Kill')
 
         self.connect('activate', self.vm.Kill)
 
 
-class PreferencesItem(Gtk.MenuItem):
+class PreferencesItem(Gtk.ImageMenuItem):
     ''' TODO: Preferences menu Item. When activated shows preferences dialog '''
     def __init__(self, vm):
         super().__init__()
         self.vm = vm
+        icon = Gtk.IconTheme.get_default().load_icon('preferences-system', 22, 0)
+        image = Gtk.Image.new_from_pixbuf(icon)
 
-        hbox = sub_menu_hbox("preferences", image_name = "preferences-system")
-        self.add(hbox)
+        self.set_image(image)
+        self.set_label('Preferences')
 
 
-class LogItem(Gtk.MenuItem):
+class LogItem(Gtk.ImageMenuItem):
     def __init__(self, vm, name, callback = None):
         super().__init__()
         image = Gtk.Image.new_from_file("/usr/share/icons/HighContrast/22x22/apps/logviewer.png")
 
-        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        hbox.pack_start(image, False, False, 0)
-        hbox.pack_start(Gtk.Label(name), False, False, 0)
+        decorator = qui.decorators.DomainDecorator(vm)
+        self.set_image(image)
+        self.set_label(name)
         if callback:
             self.connect('activate', callback)
-        self.add(hbox)
 
 
 class StartedMenu(Gtk.Menu):
@@ -108,7 +113,7 @@ class StartedMenu(Gtk.Menu):
         self.add(shutdown_item)
 
 
-class StartedMenuItem(Gtk.MenuItem):
+class StartedMenuItem(Gtk.ImageMenuItem):
     ''' Represents a menu item containing the sub-menu for a started domain '''
 
     # pylint: disable=too-few-public-methods
@@ -118,7 +123,9 @@ class StartedMenuItem(Gtk.MenuItem):
         self.vm = vm
         submenu = StartedMenu(vm)
         self.set_submenu(submenu)
-        hbox = vm_label(vm)
+        decorator = qui.decorators.DomainDecorator(vm)
+        self.set_image(decorator.state())
+        hbox = vm_label(decorator)
         self.add(hbox)
 
 
@@ -140,7 +147,7 @@ class DebugMenu(Gtk.Menu):
         self.add(kill)
 
 
-class DebugMenuItem(Gtk.MenuItem):
+class DebugMenuItem(Gtk.ImageMenuItem):
     ''' MenuItem providing different logs for a domain. '''
 
     # pylint: disable=too-few-public-methods
@@ -152,7 +159,9 @@ class DebugMenuItem(Gtk.MenuItem):
         submenu = DebugMenu(vm)
         self.set_submenu(submenu)
 
-        hbox = vm_label(vm)
+        decorator = qui.decorators.DomainDecorator(vm)
+        self.set_image(decorator.state())
+        hbox = vm_label(decorator)
         self.add(hbox)
 
 
@@ -170,7 +179,9 @@ class FailureMenuItem(Gtk.MenuItem):
         self.submenu.add(kill_item)
         self.set_submenu(self.submenu)
 
-        hbox = vm_label(vm)
+        decorator = qui.decorators.DomainDecorator(vm)
+        self.set_image(decorator.state())
+        hbox = vm_label(decorator)
         self.add(hbox)
 
 
@@ -213,7 +224,6 @@ class DomainTray(Gtk.Application):
         self.menu_items[vm_path] = widget
 
     def show_failure_menu(self, _, vm_path):
-
         if vm_path in self.menu_items:
             self.remove_menu(_, vm_path)
         vm = self.domain_manager.children[vm_path]
