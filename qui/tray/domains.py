@@ -31,8 +31,8 @@ DBusSignalMatch = dbus.connection.SignalMatch
 def vm_label(vm):
     decorator = qui.decorators.DomainDecorator(vm)
     hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-    hbox.pack_start(decorator.state(), True, True, 0)
-    hbox.pack_start(decorator.icon(), True, True, 0)
+    hbox.pack_start(decorator.state(), False, True, 0)
+    hbox.pack_start(decorator.icon(), False, True, 0)
     hbox.pack_start(decorator.name(), True, True, 0)
     hbox.pack_start(decorator.memory(), False, True, 0)
     return hbox
@@ -43,7 +43,7 @@ def sub_menu_hbox(name, image_name = None) -> Gtk.Widget:
 
     hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
     hbox.pack_start(image, False, False, 0)
-    hbox.pack_start(Gtk.Label(name), False, False, 0)
+    hbox.pack_start(Gtk.Label(name), True, False, 0)
     return hbox
 
 

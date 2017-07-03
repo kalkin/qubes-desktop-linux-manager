@@ -195,7 +195,7 @@ class DeviceItem(Gtk.MenuItem):
         name = Gtk.Label(data.name, xalign=0)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        hbox.pack_start(vm_icon, True, True, 0)
+        hbox.pack_start(vm_icon, False, True, 5)
         hbox.pack_start(name, True, True, 0)
         hbox.pack_start(dev_icon, True, True, 0)
         self.add(hbox)
