@@ -46,34 +46,16 @@ class DomainDecorator(PropertiesDecorator):
         label.set_sensitive(False)
         return label
 
-    def icon(self) -> Gtk.Image:
+    def icon(self, size = 16) -> Gtk.Image:
         ''' Returns a `Gtk.Image` containing the colored lock icon '''
         label_path = self.obj['label']
         assert label_path in LABELS.children
         label = LABELS.children[label_path]
         if label is None:
             label = LABELS.BLACK  # pylint: disable=no-member
-        icon_vm = Gtk.IconTheme.get_default().load_icon(label['icon'], 16, 0)
+        icon_vm = Gtk.IconTheme.get_default().load_icon(label['icon'], size, 0)
         icon_img = Gtk.Image.new_from_pixbuf(icon_vm)
-        self.set_margins(icon_img)
         return icon_img
-
-    def state(self) -> Gtk.Image:
-        state = self.obj['state']
-        if state == "Halting":
-            icon = Gtk.IconTheme.get_default().load_icon('application-exit', 16, 0)
-        elif state == "Starting":
-            icon = Gtk.IconTheme.get_default().load_icon('system-run', 16, 0)
-        elif state == "Started":
-            icon = Gtk.IconTheme.get_default().load_icon('media-playback-start', 16, 0)
-        elif state == "Halted":
-            icon = Gtk.IconTheme.get_default().load_icon('media-playback-stop', 16, 0)
-        else:
-            icon = Gtk.IconTheme.get_default().load_icon('media-record', 16, 0)
-
-        icon_image = Gtk.Image.new_from_pixbuf(icon)
-        icon_image.set_margin_right(self.margin_right)
-        return icon_image
 
     def netvm(self) -> Gtk.Label:
         netvm = self.obj['netvm']
