@@ -6,13 +6,12 @@ import sys
 
 import dbus
 import dbus.mainloop.glib
-dbus.mainloop.glib.DBusGMainLoop(set_as_default=True) # isort:skip
+dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)  # isort:skip
 
 import qubesadmin
 from qubesadmin.vm import AdminVM
 from qubesadmin.devices import DeviceAssignment
 from qui.models.qubes import DomainManager
-
 
 import gi  # isort:skip
 gi.require_version('Gtk', '3.0')  # isort:skip
@@ -24,6 +23,9 @@ from gi.repository import AppIndicator3 as appindicator  # isort:skip
 QUBES_APP = qubesadmin.Qubes()
 DBUS = dbus.SessionBus()
 DOMAIN_MANAGER = DomainManager()
+
+# TODO Replace pci with usb & mic when they are ready
+DEV_TYPES = ['block', 'pci']
 
 
 def find_vm(vm_path):
@@ -48,6 +50,7 @@ class DeviceData():
 
         if self.dev_type == 'block':
             self.icon = 'drive-removable-media'
+            # TODO Add handling for usb & mic when they are ready
         else:
             self.icon = 'network-wired-symbolic'
 
@@ -146,13 +149,11 @@ class DomainMenu(Gtk.Menu):
         self.append(menu_item)
 
     def add_vm(self, _, vm_path):
-        print("add_vm %s" % vm_path)
         vm = find_vm(vm_path)
         self._add_vm(vm)
         self.show_all()
 
     def remove_vm(self, _, vm_path):
-        print("remove_vm %s" % vm_path)
         vm = find_vm(vm_path)
         menu_item = self.menu_items[vm.name]
         if not menu_item.ejected:
@@ -204,18 +205,18 @@ class DeviceItem(Gtk.ImageMenuItem):
 
 
 class DevicesTray(Gtk.Application):
-    def __init__(self, app_name='Devices Tray', dev_type='block'):
+    def __init__(self, app_name='Devices Tray'):
         super(DevicesTray, self).__init__()
         self.name = app_name
         self.tray_menu = Gtk.Menu()
-        self.dev_type = dev_type
 
         self.ind = appindicator.Indicator.new(
             'Devices Widget', "gtk-preferences",
             appindicator.IndicatorCategory.SYSTEM_SERVICES)
         self.ind.set_status(appindicator.IndicatorStatus.ACTIVE)
         self.ind.set_menu(self.tray_menu)
-        self.menu_items = {}
+        self.menu_items = []
+
         DOMAIN_MANAGER.connect_to_signal('Started', self.add_vm)
         DOMAIN_MANAGER.connect_to_signal('DomainAdded', self.add_vm)
         DOMAIN_MANAGER.connect_to_signal('DomainRemoved', self.remove_vm)
@@ -223,18 +224,18 @@ class DevicesTray(Gtk.Application):
         DOMAIN_MANAGER.connect_to_signal('Failed', self.remove_vm)
         DOMAIN_MANAGER.connect_to_signal('Unknown', self.remove_vm)
 
-    def _add_device(self, device, vm):
+    def _add_device(self, vm, dev_type, device):
         assignment = DeviceAssignment(vm, device.ident, {}, persistent=False,
-                                      frontend_domain=None,
-                                      devclass=self.dev_type)
+                                      frontend_domain=None, devclass=dev_type)
         data = DeviceData(assignment)
         item = DeviceItem(data)
-        self.menu_items[data.name] = item
+        self.menu_items.append(item)
         self.tray_menu.add(item)
 
     def _add_devices(self, vm):
-        for device in vm.devices[self.dev_type].available():
-            self._add_device(device, vm)
+        for dev_type in DEV_TYPES:
+            for device in vm.devices[dev_type].available():
+                self._add_device(vm, dev_type, device)
 
     def add_vm(self, _, vm_path):
         vm = find_vm(vm_path)
@@ -242,12 +243,15 @@ class DevicesTray(Gtk.Application):
 
     def remove_vm(self, _, vm_path):
         vm = find_vm(vm_path)
-        for device in vm.devices[self.dev_type]:
-            name = "%s:%s" % (vm.name, device.ident)
-            menu_item = self.menu_items[name]
-            self.tray_menu.remove(menu_item)
+        items = self._find_all_items(vm)
+        for item in items:
+            self.tray_menu.remove(item)
+            self.menu_items.remove(item)
 
         self.tray_menu.show_all()
+
+    def _find_all_items(self, vm):
+        return [item for item in self.menu_items if item.vm == vm]
 
     def run(self):  # pylint: disable=arguments-differ
         for vm in QUBES_APP.domains:
@@ -269,11 +273,7 @@ def create_icon(name):
 
 
 def main():
-    if len(sys.argv) > 1:
-        dev_type = sys.argv[1]
-        app = DevicesTray(dev_type=dev_type)
-    else:
-        app = DevicesTray()
+    app = DevicesTray()
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     app.run()
 
