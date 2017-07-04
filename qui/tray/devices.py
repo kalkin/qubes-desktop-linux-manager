@@ -264,7 +264,7 @@ class DevicesTray(Gtk.Application):
 
 
 def create_icon(name):
-    icon_dev = Gtk.IconTheme.get_default().load_icon(name, 22, 0)
+    icon_dev = Gtk.IconTheme.get_default().load_icon(name, 16, 0)
     return Gtk.Image.new_from_pixbuf(icon_dev)
 
 

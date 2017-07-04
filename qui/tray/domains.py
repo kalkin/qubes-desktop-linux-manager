@@ -36,7 +36,7 @@ def vm_label(decorator):
     return hbox
 
 def sub_menu_hbox(name, image_name = None) -> Gtk.Widget:
-    icon = Gtk.IconTheme.get_default().load_icon(image_name, 22, 0)
+    icon = Gtk.IconTheme.get_default().load_icon(image_name, 16, 0)
     image = Gtk.Image.new_from_pixbuf(icon)
 
     hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
@@ -51,7 +51,7 @@ class ShutdownItem(Gtk.ImageMenuItem):
         super().__init__()
         self.vm = vm
 
-        icon = Gtk.IconTheme.get_default().load_icon('media-playback-stop', 22, 0)
+        icon = Gtk.IconTheme.get_default().load_icon('media-playback-stop', 16, 0)
         image = Gtk.Image.new_from_pixbuf(icon)
 
         self.set_image(image)
@@ -66,7 +66,7 @@ class KillItem(Gtk.ImageMenuItem):
         super().__init__()
         self.vm = vm
 
-        icon = Gtk.IconTheme.get_default().load_icon('media-record', 22, 0)
+        icon = Gtk.IconTheme.get_default().load_icon('media-record', 16, 0)
         image = Gtk.Image.new_from_pixbuf(icon)
 
         self.set_image(image)
@@ -80,7 +80,7 @@ class PreferencesItem(Gtk.ImageMenuItem):
     def __init__(self, vm):
         super().__init__()
         self.vm = vm
-        icon = Gtk.IconTheme.get_default().load_icon('preferences-system', 22, 0)
+        icon = Gtk.IconTheme.get_default().load_icon('preferences-system', 16, 0)
         image = Gtk.Image.new_from_pixbuf(icon)
 
         self.set_image(image)
@@ -90,7 +90,7 @@ class PreferencesItem(Gtk.ImageMenuItem):
 class LogItem(Gtk.ImageMenuItem):
     def __init__(self, vm, name, callback = None):
         super().__init__()
-        image = Gtk.Image.new_from_file("/usr/share/icons/HighContrast/22x22/apps/logviewer.png")
+        image = Gtk.Image.new_from_file("/usr/share/icons/HighContrast/16x16/apps/logviewer.png")
 
         decorator = qui.decorators.DomainDecorator(vm)
         self.set_image(image)
