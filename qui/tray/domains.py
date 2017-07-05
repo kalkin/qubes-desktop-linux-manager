@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 ''' A menu listing domains '''
 
-import os.path
 import signal
 import sys
 from enum import Enum
@@ -139,64 +138,29 @@ class DebugMenu(Gtk.Menu):
         self.add(kill)
 
 
-class FailureMenuItem(Gtk.ImageMenuItem):
-    ''' Represents a menu item containing information about a vm. '''
-
-    # pylint: disable=too-few-public-methods
-
-    def __init__(self, vm):
-        super().__init__()
-        self.vm = vm
-
-        self.submenu = DebugMenu(vm)
-        kill_item = KillItem(vm)
-        self.submenu.add(kill_item)
-        self.set_submenu(self.submenu)
-
-        decorator = qui.decorators.DomainDecorator(vm)
-        pixbuf = Gtk.IconTheme.get_default().load_icon('media-record', 16, 0)
-        icon = Gtk.Image.new_from_pixbuf(pixbuf)
-        self.set_image(icon)
-        hbox = vm_label(decorator)
-        self.add(hbox)
-
-
 class DomainMenuItem(Gtk.ImageMenuItem):
     def __init__(self, vm):
         super().__init__()
         self.vm = vm
-        self.started_menu = StartedMenu(vm)
-        self.debug_menu = DebugMenu(vm)
-
-        self.failed_menu = DebugMenu(vm)
-        remove = Gtk.MenuItem("Remove")
-        remove.connect('activate', lambda: self.hide)
-        self.failed_menu.add(remove)
-
-        self.progress_visible = False
 
         self.decorator = qui.decorators.DomainDecorator(vm)
 
-        self.progressbar = Gtk.ProgressBar()
-
-        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.vbox.pack_start(self._domain_label(), True, True, 0)
-        self.add(self.vbox)
-        state = self._state()
-        if state in [STATE.RUNNING, STATE.FAILED]:
-            self._hide_progress()
-        else:
-            self._show_progress()
-
-        self._update_submenu(state)
-        self._update_image(state)
-        GObject.timeout_add(150, self.pulse)
-
-    def _domain_label(self):
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         hbox.pack_start(self.decorator.name(), True, True, 0)
+
+        state = self._state()
+
+        if state not in [STATE.RUNNING, STATE.FAILED]:
+            spinner = Gtk.Spinner()
+            spinner.start()
+            hbox.pack_start(spinner, False, True, 0)
+
         hbox.pack_start(self.decorator.memory(), False, True, 0)
-        return hbox
+
+        self.add(hbox)
+
+        self._set_submenu(state)
+        self._set_image(state)
 
     def _state(self):
         if self.vm['state'] == 'Started':
@@ -206,39 +170,25 @@ class DomainMenuItem(Gtk.ImageMenuItem):
 
         return STATE.TRANSIENT
 
-    def _show_progress(self):
-        if not self.progress_visible:
-            self.vbox.pack_start(self.progressbar, False, True, 0)
-            self.progress_visible = True
-
-    def pulse(self):
-        if self.progress_visible:
-            self.progressbar.pulse()
-        return True
-
-    def _hide_progress(self):
-        if self.progress_visible:
-            self.vbox.remove(self.progressbar)
-            self.progress_visible = False
-
-    def _update_image(self, state):
-        if state == STATE.RUNNING:
-            self.set_image(self.decorator.icon())
-        elif state == STATE.FAILED:
+    def _set_image(self, state):
+        if state == STATE.FAILED:
             failed_pixbuf = Gtk.IconTheme.get_default().load_icon(
                 'media-record', 16, 0)
             failed_image = Gtk.Image.new_from_pixbuf(failed_pixbuf)
             self.set_image(failed_image)
         else:
-            self.set_image(self.decorator.icon(22))
+            self.set_image(self.decorator.icon())
 
-    def _update_submenu(self, state):
+    def _set_submenu(self, state):
         if state == STATE.RUNNING:
-            self.set_submenu(self.started_menu)
+            submenu = StartedMenu(self.vm)
         elif state == STATE.FAILED:
-            self.set_submenu(self.failed_menu)
+            submenu = DebugMenu(self.vm)
+            remove = Gtk.MenuItem("Remove")
+            remove.connect('activate', lambda: self.hide)
         else:
-            self.set_submenu(self.debug_menu)
+            submenu = DebugMenu(self.vm)
+        self.set_submenu(submenu)
 
 
 class DomainTray(Gtk.Application):
@@ -267,20 +217,6 @@ class DomainTray(Gtk.Application):
         vm_widget = self.menu_items[vm_path]
         self.tray_menu.remove(vm_widget)
         del self.menu_items[vm_path]
-
-    def show_failure_menu(self, _, vm_path):
-        if vm_path in self.menu_items:
-            self.remove_menu(_, vm_path)
-        vm = self.domain_manager.children[vm_path]
-        widget = FailureMenuItem(vm)
-
-        remove = Gtk.MenuItem("Remove")
-        remove.connect('activate', lambda: self.remove_menu(None, vm_path))
-        widget.submenu.add(remove)
-
-        self.tray_menu.add(widget)
-        self.tray_menu.show_all()
-        self.menu_items[vm_path] = widget
 
     def update_domain_item(self, _, vm_path):
         ''' Add/Replace the menu item with the started menu for the specified vm in the tray'''

@@ -46,14 +46,14 @@ class DomainDecorator(PropertiesDecorator):
         label.set_sensitive(False)
         return label
 
-    def icon(self, size = 16) -> Gtk.Image:
+    def icon(self) -> Gtk.Image:
         ''' Returns a `Gtk.Image` containing the colored lock icon '''
         label_path = self.obj['label']
         assert label_path in LABELS.children
         label = LABELS.children[label_path]
         if label is None:
             label = LABELS.BLACK  # pylint: disable=no-member
-        icon_vm = Gtk.IconTheme.get_default().load_icon(label['icon'], size, 0)
+        icon_vm = Gtk.IconTheme.get_default().load_icon(label['icon'], 16, 0)
         icon_img = Gtk.Image.new_from_pixbuf(icon_vm)
         return icon_img
 
