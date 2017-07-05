@@ -176,14 +176,14 @@ class DomainMenu(Gtk.Menu):
 
         self.data.attach(vm)
         menu_item.attach()
-        subprocess.call(['notify-send', "Simulating attachment on %s" % vm])
+        subprocess.call(['notify-send', "Attaching %s to %s" % (self.data.name, vm)])
 
     def detach(self):
         vm_name = self.data.assignment.frontend_domain.name
         menu_item = self.menu_items[vm_name]
         self.data.detach()
         menu_item.detach()
-        subprocess.call(['notify-send', "Simulating detachment"])
+        subprocess.call(['notify-send', "Detaching %s from %s" % (self.data.name, vm)])
 
 
 class DeviceItem(Gtk.ImageMenuItem):
