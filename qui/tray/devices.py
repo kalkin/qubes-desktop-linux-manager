@@ -59,7 +59,7 @@ class DeviceData():
             self.detach()
 
         self.assignment.frontend_domain = vm
-        dev_col = self.assignment.backend_domain.devices[self.dev_type]
+        dev_col = vm.devices[self.dev_type]
         try:
             dev_col.attach(self.assignment)
         except Exception as e:
