@@ -25,7 +25,7 @@ DBUS = dbus.SessionBus()
 DOMAIN_MANAGER = DomainManager()
 
 # TODO Replace pci with usb & mic when they are ready
-DEV_TYPES = ['block', 'pci']
+DEV_TYPES = ['block', 'usb', 'mic']
 
 
 def find_vm(vm_path):
@@ -234,8 +234,11 @@ class DevicesTray(Gtk.Application):
 
     def _add_devices(self, vm):
         for dev_type in DEV_TYPES:
-            for device in vm.devices[dev_type].available():
-                self._add_device(vm, dev_type, device)
+            try:
+                for device in vm.devices[dev_type].available():
+                    self._add_device(vm, dev_type, device)
+            except qubesadmin.exc.QubesDaemonNoResponseError:
+                print("AdminVM doesn't support devclass %s" % dev_type)
 
     def add_vm(self, _, vm_path):
         vm = find_vm(vm_path)
