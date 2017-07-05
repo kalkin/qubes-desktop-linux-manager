@@ -44,6 +44,7 @@ class DeviceData():
         self.vm_icon = self.assignment.backend_domain.label.icon
         self.name = "%s:%s" % (self.assignment.backend_domain.name,
                                self.assignment.ident)
+        self.backend_domain = self.assignment.backend_domain
         self.dbus_path = os.path.join('/org/qubes/DomainManager1',
                                       str(self.assignment.backend_domain.qid),
                                       self.dev_type, self.assignment.ident)
@@ -176,14 +177,16 @@ class DomainMenu(Gtk.Menu):
 
         self.data.attach(vm)
         menu_item.attach()
-        subprocess.call(['notify-send', "Attaching %s to %s" % (self.data.name, vm)])
+        subprocess.call(
+            ['notify-send', "Attaching %s to %s" % (self.data.name, vm)])
 
     def detach(self):
         vm_name = self.data.assignment.frontend_domain.name
         menu_item = self.menu_items[vm_name]
         self.data.detach()
         menu_item.detach()
-        subprocess.call(['notify-send', "Detaching %s from %s" % (self.data.name, vm)])
+        subprocess.call(
+            ['notify-send', "Detaching %s from %s" % (self.data.name, vm_name)])
 
 
 class DeviceItem(Gtk.ImageMenuItem):
@@ -194,6 +197,7 @@ class DeviceItem(Gtk.ImageMenuItem):
         vm_icon = create_icon(data.vm_icon)
         dev_icon = create_icon(data.icon)
         name = Gtk.Label(data.name, xalign=0)
+        self.data = data
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.set_image(vm_icon)
@@ -204,11 +208,102 @@ class DeviceItem(Gtk.ImageMenuItem):
         self.set_submenu(submenu)
 
 
+class DeviceGroups():
+
+    def __init__(self, menu: Gtk.Menu):
+        self.positions =  {}
+        self.separators = {}
+        self.counters = {}
+        self.menu = menu
+        self.menu_items = []
+
+        for pos, dev_type in enumerate(DEV_TYPES):
+            self.counters[dev_type] = 0
+            if dev_type == DEV_TYPES[0]:
+                separator = None
+            else:
+                separator = Gtk.SeparatorMenuItem()
+                self.menu.add(separator)
+
+            self.positions[dev_type] = pos
+            self.separators[dev_type] = separator
+
+
+    def add(self, vm, dev_type, device):
+        assignment = DeviceAssignment(vm, device.ident, {}, persistent=False,
+                                      frontend_domain=None, devclass=dev_type)
+        data = DeviceData(assignment)
+        position = self._position(dev_type)
+
+        self._insert(data, position)
+
+        if dev_type not in [DEV_TYPES[0], DEV_TYPES[-1]]:
+            self.separators[dev_type].show()
+
+    def _position(self, dev_type):
+        if dev_type == DEV_TYPES[0]:
+            return 0
+        else:
+            return self.positions[dev_type] + 1
+
+
+    def _insert(self, data: DeviceData, position: int) -> None:
+        menu_item = DeviceItem(data)
+        self.menu.insert(menu_item, position)
+        self.counters[data.dev_type] += 1
+        self.menu_items.append(menu_item)
+        self._shift_positions(data.dev_type)
+        self._recalc_separators()
+
+    def remove(self, vm):
+        menu_items = self._find_all_items(vm)
+        for item in menu_items:
+            dev_type = item.data.dev_type
+            self.menu.remove(item)
+            self.counters[dev_type] -= 1
+            self._unshift_positions(dev_type)
+
+        self._recalc_separators()
+
+
+    def _recalc_separators(self):
+        for dev_type, size in self.counters.items():
+            separator = self.separators[dev_type]
+            if separator is not None:
+                if size > 0:
+                    separator.show()
+                else:
+                    separator.hide()
+
+    def _find_all_items(self, vm):
+        return [item for item in self.menu_items if item.data.backend_domain == vm]
+
+
+    def _shift_positions(self, dev_type):
+        if dev_type == DEV_TYPES[-1]:
+            return
+
+        start_index = DEV_TYPES.index(dev_type)
+        index_to_update = DEV_TYPES[start_index:]
+
+        for index in index_to_update:
+            self.positions[index] += 1
+
+    def _unshift_positions(self, dev_type):
+        if dev_type in [DEV_TYPES[0], DEV_TYPES[-1]]:
+            return
+
+        for index in DEV_TYPES[1:]:
+            assert self.positions[index] > 0
+            self.positions[index] -= 1
+
+
 class DevicesTray(Gtk.Application):
     def __init__(self, app_name='Devices Tray'):
         super(DevicesTray, self).__init__()
         self.name = app_name
         self.tray_menu = Gtk.Menu()
+        self.devices = DeviceGroups(self.tray_menu)
 
         self.ind = appindicator.Indicator.new(
             'Devices Widget', "gtk-preferences",
@@ -224,46 +319,28 @@ class DevicesTray(Gtk.Application):
         DOMAIN_MANAGER.connect_to_signal('Failed', self.remove_vm)
         DOMAIN_MANAGER.connect_to_signal('Unknown', self.remove_vm)
 
-    def _add_device(self, vm, dev_type, device):
-        assignment = DeviceAssignment(vm, device.ident, {}, persistent=False,
-                                      frontend_domain=None, devclass=dev_type)
-        data = DeviceData(assignment)
-        item = DeviceItem(data)
-        self.menu_items.append(item)
-        self.tray_menu.add(item)
-
-    def _add_devices(self, vm):
+    def _add_vm(self, vm):
         for dev_type in DEV_TYPES:
             try:
                 for device in vm.devices[dev_type].available():
-                    self._add_device(vm, dev_type, device)
+                    self.devices.add(vm, dev_type, device)
             except qubesadmin.exc.QubesDaemonNoResponseError:
                 print("AdminVM doesn't support devclass %s" % dev_type)
 
     def add_vm(self, _, vm_path):
+        print(vm_path)
         vm = find_vm(vm_path)
-        self._add_devices(vm)
+        self._add_vm(vm)
 
     def remove_vm(self, _, vm_path):
+        print(vm_path)
         vm = find_vm(vm_path)
-        items = self._find_all_items(vm)
-        for item in items:
-            self.tray_menu.remove(item)
-            self.menu_items.remove(item)
-
+        self.devices.remove(vm)
         self.tray_menu.show_all()
-
-    def _find_all_items(self, vm):
-        return [item for item in self.menu_items if item.vm == vm]
 
     def run(self):  # pylint: disable=arguments-differ
         for vm in QUBES_APP.domains:
-            self._add_devices(vm)
-            # for assignment in vm.devices[self.dev_type].assignments(
-            #         persistent=False):
-            #     data = DeviceData(assignment, self.dev_type)
-            #     item = DomainMenu(data)
-            #     self.tray_menu.add(item)
+            self._add_vm(vm)
 
         self.tray_menu.show_all()
 
