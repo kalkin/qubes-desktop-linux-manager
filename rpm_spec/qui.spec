@@ -52,8 +52,6 @@ Requires:  qubes-dbus
 Requires:	 libappindicator-gtk3
 Requires:	 python3-systemd
 Requires:  gtk3
-Provides: pythonX.Ydist(CANONICAL_STANDARDIZED_NAME)
-Provides: pythonXdist(CANONICAL_STANDARDIZED_NAME)
 
 
 %define _builddir %(pwd)
