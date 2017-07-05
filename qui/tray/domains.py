@@ -11,10 +11,9 @@ import dbus.mainloop.glib
 dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
 # pylint: disable=wrong-import-position
-import qubesadmin
 import qui.decorators
 
-from qui.models.qubes import Domain, DomainManager
+from qui.models.qubes import DomainManager
 
 import gi  # isort:skip
 gi.require_version('Gtk', '3.0')  # isort:skip
@@ -41,7 +40,8 @@ def vm_label(decorator):
     hbox.pack_start(decorator.memory(), False, True, 0)
     return hbox
 
-def sub_menu_hbox(name, image_name = None) -> Gtk.Widget:
+
+def sub_menu_hbox(name, image_name=None) -> Gtk.Widget:
     icon = Gtk.IconTheme.get_default().load_icon(image_name, 16, 0)
     image = Gtk.Image.new_from_pixbuf(icon)
 
@@ -53,11 +53,13 @@ def sub_menu_hbox(name, image_name = None) -> Gtk.Widget:
 
 class ShutdownItem(Gtk.ImageMenuItem):
     ''' Shutdown menu Item. When activated shutdowns the domain. '''
+
     def __init__(self, vm):
         super().__init__()
         self.vm = vm
 
-        icon = Gtk.IconTheme.get_default().load_icon('media-playback-stop', 16, 0)
+        icon = Gtk.IconTheme.get_default().load_icon('media-playback-stop', 16,
+                                                     0)
         image = Gtk.Image.new_from_pixbuf(icon)
 
         self.set_image(image)
@@ -68,6 +70,7 @@ class ShutdownItem(Gtk.ImageMenuItem):
 
 class KillItem(Gtk.ImageMenuItem):
     ''' Kill domain menu Item. When activated kills the domain. '''
+
     def __init__(self, vm):
         super().__init__()
         self.vm = vm
@@ -83,10 +86,12 @@ class KillItem(Gtk.ImageMenuItem):
 
 class PreferencesItem(Gtk.ImageMenuItem):
     ''' TODO: Preferences menu Item. When activated shows preferences dialog '''
+
     def __init__(self, vm):
         super().__init__()
         self.vm = vm
-        icon = Gtk.IconTheme.get_default().load_icon('preferences-system', 16, 0)
+        icon = Gtk.IconTheme.get_default().load_icon('preferences-system', 16,
+                                                     0)
         image = Gtk.Image.new_from_pixbuf(icon)
 
         self.set_image(image)
@@ -94,9 +99,10 @@ class PreferencesItem(Gtk.ImageMenuItem):
 
 
 class LogItem(Gtk.ImageMenuItem):
-    def __init__(self, vm, name, callback = None):
+    def __init__(self, vm, name, callback=None):
         super().__init__()
-        image = Gtk.Image.new_from_file("/usr/share/icons/HighContrast/16x16/apps/logviewer.png")
+        image = Gtk.Image.new_from_file(
+            "/usr/share/icons/HighContrast/16x16/apps/logviewer.png")
 
         decorator = qui.decorators.DomainDecorator(vm)
         self.set_image(image)
@@ -200,13 +206,14 @@ class DomainTray(Gtk.Application):
         self.tray_menu = Gtk.Menu()
         self.ind = indicator(self.tray_menu)
         self.domain_manager = DomainManager()
-        self.signal_matches = {} # type: Dict[dbus.ObjectPath, List[DBusSignalMatch]]
-        self.menu_items = {} # type: Dict[dbus.ObjectPath, Gtk.MenuItem]
+        self.signal_matches = {
+        }  # type: Dict[dbus.ObjectPath, List[DBusSignalMatch]]
+        self.menu_items = {}  # type: Dict[dbus.ObjectPath, Gtk.MenuItem]
 
         self.signal_callbacks = {
             'Starting': self.update_domain_item,
             'Started': self.update_domain_item,
-            'Failed': self.show_failure_menu,
+            'Failed': self.update_domain_item,
             'Halting': self.update_domain_item,
             'Halted': self.remove_menu,
             'Unknown': self.update_domain_item,
@@ -231,8 +238,8 @@ class DomainTray(Gtk.Application):
 
     def run(self):  # pylint: disable=arguments-differ
         for signal_name, handler_function in self.signal_callbacks.items():
-            matcher = self.domain_manager.connect_to_signal(signal_name,
-                                                            handler_function)
+            matcher = self.domain_manager.connect_to_signal(
+                signal_name, handler_function)
 
             if signal_name not in self.signal_matches:
                 self.signal_matches[signal_name] = list()
