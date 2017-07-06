@@ -15,7 +15,7 @@ from qui.models.qubes import DomainManager
 
 import gi  # isort:skip
 gi.require_version('Gtk', '3.0')  # isort:skip
-from gi.repository import Gtk  # isort:skip pylint:
+from gi.repository import Gtk, Pango  # isort:skip pylint:
 
 gi.require_version('AppIndicator3', '0.1')  # isort:skip
 from gi.repository import AppIndicator3 as appindicator  # isort:skip
@@ -196,12 +196,18 @@ class DeviceItem(Gtk.ImageMenuItem):
 
         vm_icon = create_icon(data.vm_icon)
         dev_icon = create_icon(data.icon)
-        name = Gtk.Label(data.name, xalign=0)
+        if data.assignment.device.description != " ()":
+            name = data.name + " " + data.assignment.device.description
+        else:
+            name = data.name
+        name_label = Gtk.Label(name, xalign=0)
+        name_label.set_max_width_chars(64)
+        name_label.set_ellipsize(Pango.EllipsizeMode.END)
         self.data = data
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.set_image(vm_icon)
-        hbox.pack_start(name, True, True, 0)
+        hbox.pack_start(name_label, True, True, 0)
         hbox.pack_start(dev_icon, False, True, 0)
         self.add(hbox)
         submenu = DomainMenu(data)
