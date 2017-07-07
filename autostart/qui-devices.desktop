@@ -1,0 +1,8 @@
+[Desktop Entry]
+Icon=gtk-preferences
+Name=Devices Tray
+Categories=System;Monitor;
+Exec=python3 -mqui.tray.devices
+Terminal=false
+Type=Application
+
