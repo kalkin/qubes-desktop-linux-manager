@@ -28,13 +28,13 @@ class DomainsListStore(Gtk.ListStore):
 
 class ListBoxWindow(Gtk.Window):
     def __init__(self, app, col_names):
+        super().__init__(title="Domain List")
         columns = []
         for col in col_names:
             col = col.strip().upper()
             if col in qvm_ls.Column.columns:
                 columns += [qvm_ls.Column.columns[col]]
 
-        Gtk.Window.__init__(self, title="TreeView Demo")
         self.set_border_width(10)
 
         # self.grid = Gtk.Grid()
