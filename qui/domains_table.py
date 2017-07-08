@@ -41,14 +41,11 @@ class ListBoxWindow(Gtk.Window):
         # self.grid.set_column_homogeneous(True)
         self.store = DomainsListStore(app, columns)
         self.treeview = Gtk.TreeView.new_with_model(self.store)
-        self.treeview.append_column(
-            Gtk.TreeViewColumn("", Gtk.CellRendererText(), text=0))
-        i = 0
-        for col in columns:
+        for index in range(0, len(columns)):
+            col = columns[index]
             self.treeview.append_column(
                 Gtk.TreeViewColumn(
-                    str(col.ls_head), Gtk.CellRendererText(), text=i))
-            i += 1
+                    str(col.ls_head), Gtk.CellRendererText(), text=index))
         self.add(self.treeview)
         self.show_all()
 
