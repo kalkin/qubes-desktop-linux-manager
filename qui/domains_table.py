@@ -15,13 +15,29 @@ from gi.repository import Gio, Gtk  # isort:skip pylint: disable=C0413
 
 # pylint:disable=missing-docstring
 
+ICON_STATE_MAP = {
+    'media-playback-start': "Running",
+    'system-run': "Transient",
+    'media-playback-stop': "Halted"
+}
+
+
+def state_icon_name(vm):
+    return {v: k for k, v in ICON_STATE_MAP.items()}[vm.get_power_state()]
+
+
+def create_icon(name):
+    icon_dev = Gtk.IconTheme.get_default().load_icon(name, 16, 0)
+    return Gtk.Image.new_from_pixbuf(icon_dev)
+
 
 class DomainsListStore(Gtk.ListStore):
     def __init__(self, app, columns, **kwargs):
         params = [
             str,
         ] * len(columns)
-        super(DomainsListStore, self).__init__(*params, **kwargs)
+
+        super().__init__(*params, **kwargs)
         for vm in app.domains:
             if vm.name == 'dom0':
                 continue
@@ -31,6 +47,7 @@ class DomainsListStore(Gtk.ListStore):
 class ListBoxWindow(Gtk.Window):
     def __init__(self, app, col_names):
         super().__init__(title="Domain List")
+
         self.app = app
         self.filter = ["Halted"]
         self.col_names = col_names
@@ -42,9 +59,9 @@ class ListBoxWindow(Gtk.Window):
 
     def _button_bar(self):
         vbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        states = ["Halted", "Transient", "Running"]
-        for state in states:
+        for icon_name, state in ICON_STATE_MAP.items():
             button = Gtk.ToggleButton(state)
+            button.set_image(create_icon(icon_name))
             if state not in self.filter:
                 button.set_active(True)
             button.connect('toggled', self._toggle_filter, state)
@@ -78,11 +95,12 @@ class ListBoxWindow(Gtk.Window):
         treeview = Gtk.TreeView.new_with_model(self.filter_store)
         for index in range(0, len(columns)):
             col = columns[index]
-            title = str(col.ls_head)
-            if col.ls_head == 'LABEL':
+            if col.ls_head in ['STATE', 'LABEL']:
+                title = str(" ")
                 renderer = Gtk.CellRendererPixbuf()
                 kwargs = {'icon-name': index}
             else:
+                title = str(col.ls_head)
                 renderer = Gtk.CellRendererText()
                 kwargs = {'text': index}
 
@@ -90,8 +108,9 @@ class ListBoxWindow(Gtk.Window):
             treeview.append_column(view_column)
         return treeview
 
-    def _filter_func(self, model, iter, data):
-        state = model[iter][1]
+    def _filter_func(self, model, iterator, _):
+        icon_name = model[iterator][0]
+        state = ICON_STATE_MAP[icon_name]
         if state in self.filter:
             return False
         return True
@@ -101,6 +120,7 @@ class ListBoxWindow(Gtk.Window):
 
 
 qvm_ls.Column('LABEL', attr=(lambda vm: vm.label.icon), doc="Label icon")
+qvm_ls.Column('STATE', attr=state_icon_name, doc="Label icon")
 
 #: Available formats. Feel free to plug your own one.
 formats = {
@@ -118,7 +138,7 @@ def main(args=None):  # pylint:disable=unused-argument
     try:
         args = parser.parse_args()
     except qubesadmin.exc.QubesException as e:
-        parser.print_error(e.message)
+        parser.print_error(str(e))
         return 1
 
     if args.fields:
