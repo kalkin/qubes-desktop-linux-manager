@@ -23,6 +23,8 @@ class DomainsListStore(Gtk.ListStore):
         ] * len(columns)
         super(DomainsListStore, self).__init__(*params, **kwargs)
         for vm in app.domains:
+            if vm.name == 'dom0':
+                continue
             self.append([col.cell(vm) for col in columns])
 
 
