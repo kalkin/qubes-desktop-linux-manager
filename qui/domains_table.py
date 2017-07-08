@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- encoding: utf8 -*-
+# -*- encoding: utf-8 -*-
 ''' This is the graphical equivalent of `qvm-ls(1)` based on `Gtk.TreeView`'''
 
 from __future__ import print_function
