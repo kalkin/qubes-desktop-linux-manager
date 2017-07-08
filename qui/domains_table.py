@@ -43,15 +43,24 @@ class ListBoxWindow(Gtk.Window):
         self.treeview = Gtk.TreeView.new_with_model(self.store)
         for index in range(0, len(columns)):
             col = columns[index]
-            self.treeview.append_column(
-                Gtk.TreeViewColumn(
-                    str(col.ls_head), Gtk.CellRendererText(), text=index))
+            title = str(col.ls_head)
+            if col.ls_head == 'LABEL':
+                renderer = Gtk.CellRendererPixbuf()
+                kwargs = {'icon-name': index}
+            else:
+                renderer = Gtk.CellRendererText()
+                kwargs = {'text': index}
+
+            view_column = Gtk.TreeViewColumn(title, renderer, **kwargs)
+            self.treeview.append_column(view_column)
         self.add(self.treeview)
         self.show_all()
 
     def reload(self):
         print("drin")
 
+
+qvm_ls.Column('LABEL', attr=(lambda vm: vm.label.icon), doc="Label icon")
 
 #: Available formats. Feel free to plug your own one.
 formats = {
