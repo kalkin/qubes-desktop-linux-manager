@@ -56,7 +56,7 @@ class ListBoxWindow(Gtk.Window):
         super().__init__(title="Domain List")
 
         self.app = app
-        self.filter = ["Halted"]
+        self.filter = {'state': ["Halted"], 'vm_type': []}
         self.col_names = col_names
         self.add_bindings()
         hbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -71,29 +71,46 @@ class ListBoxWindow(Gtk.Window):
 
     def _button_bar(self):
         vbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        states = {v: k for k, v in ICON_STATE_MAP.items()}
-        data = [('Running', "F2"), ('Transient', "F3"), ('Halted', "F4")]
+        buttons_data = [
+            ('Running', "F2", "media-playback-start",
+             self._toggle_filter_state),
+            ('Transient', "F3", "system-run", self._toggle_filter_state),
+            ('Halted', "F4", "media-playback-stop", self._toggle_filter_state),
+            ('AppVM', "F5", None, self._toggle_filter_type),
+            ('StandaloneVM', "F6", None, self._toggle_filter_type),
+            ('TemplateVM', "F7", None, self._toggle_filter_type),
+            ('DispVM', "F8", None, self._toggle_filter_type),
+        ]
 
-        for state, key in data:
+        for button_name, key, icon_name, func in buttons_data:
             key_id = Gtk.accelerator_parse(key).accelerator_key
-            button = Gtk.ToggleButton("%s (%s)" % (state, key))
-            icon_name = states[state]
-            icon = create_icon(icon_name)
-            button.set_image(icon)
-            if state not in self.filter:
+            button = Gtk.ToggleButton("%s (%s)" % (button_name, key))
+            if icon_name:
+                icon = create_icon(icon_name)
+                button.set_image(icon)
+            if button_name not in self.filter['state'] and button_name not in self.filter['vm_type']:
                 button.set_active(True)
-            button.connect('toggled', self._toggle_filter, state)
+            button.connect('toggled', func, button_name)
 
             button.add_accelerator("activate", self.accel_group, key_id, 0, 0)
             vbox.add(button)
         vbox.set_halign(Gtk.Align.CENTER)
         return vbox
 
-    def _toggle_filter(self, widget, state):
+    def _toggle_filter_state(self, widget, state):
         if widget.get_active():
-            self.filter.remove(state)
+            self.filter['state'].remove(state)
         else:
-            self.filter.append(state)
+            self.filter['state'].append(state)
+
+        self.filter_store.refilter()
+        self.show_all()
+
+    def _toggle_filter_type(self, widget, vm_type):
+        if widget.get_active():
+            self.filter['vm_type'].remove(vm_type)
+        else:
+            self.filter['vm_type'].append(vm_type)
 
         self.filter_store.refilter()
         self.show_all()
@@ -131,8 +148,9 @@ class ListBoxWindow(Gtk.Window):
 
     def _filter_func(self, model, iterator, _):
         icon_name = model[iterator][0]
+        vm_type = model[iterator][3]
         state = ICON_STATE_MAP[icon_name]
-        if state in self.filter:
+        if state in self.filter['state'] or vm_type in self.filter['vm_type']:
             return False
         return True
 
