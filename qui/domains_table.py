@@ -70,7 +70,7 @@ class ListBoxWindow(Gtk.Window):
         self.add_accel_group(self.accel_group)
 
     def _button_bar(self):
-        vbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        vbox = Gtk.Toolbar(orientation=Gtk.Orientation.HORIZONTAL)
         buttons_data = [
             ('Running', "F2", "media-playback-start",
              self._toggle_filter_state),
@@ -93,7 +93,9 @@ class ListBoxWindow(Gtk.Window):
             button.connect('toggled', func, button_name)
 
             button.add_accelerator("activate", self.accel_group, key_id, 0, 0)
-            vbox.add(button)
+            item = Gtk.ToolItem()
+            item.add(button)
+            vbox.add(item)
         vbox.set_halign(Gtk.Align.CENTER)
         return vbox
 
