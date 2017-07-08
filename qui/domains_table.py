@@ -29,8 +29,39 @@ class DomainsListStore(Gtk.ListStore):
 class ListBoxWindow(Gtk.Window):
     def __init__(self, app, col_names):
         super().__init__(title="Domain List")
+        self.app = app
+        self.filter = ["Halted"]
+        self.col_names = col_names
+        hbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        hbox.add(self._button_bar())
+        hbox.pack_start(self._tree_view(), True, True, 5)
+        self.add(hbox)
+        self.show_all()
+
+    def _button_bar(self):
+        vbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        states = ["Halted", "Transient", "Running"]
+        for state in states:
+            button = Gtk.ToggleButton(state)
+            if state not in self.filter:
+                button.set_active(True)
+            button.connect('toggled', self._toggle_filter, state)
+            vbox.add(button)
+        vbox.set_halign(Gtk.Align.CENTER)
+        return vbox
+
+    def _toggle_filter(self, widget, state):
+        if widget.get_active():
+            self.filter.remove(state)
+        else:
+            self.filter.append(state)
+
+        self.filter_store.refilter()
+        self.show_all()
+
+    def _tree_view(self):
         columns = []
-        for col in col_names:
+        for col in self.col_names:
             col = col.strip().upper()
             if col in qvm_ls.Column.columns:
                 columns += [qvm_ls.Column.columns[col]]
@@ -39,8 +70,10 @@ class ListBoxWindow(Gtk.Window):
 
         # self.grid = Gtk.Grid()
         # self.grid.set_column_homogeneous(True)
-        self.store = DomainsListStore(app, columns)
-        self.treeview = Gtk.TreeView.new_with_model(self.store)
+        store = DomainsListStore(self.app, columns)
+        self.filter_store = store.filter_new()
+        self.filter_store.set_visible_func(self._filter_func)
+        treeview = Gtk.TreeView.new_with_model(self.filter_store)
         for index in range(0, len(columns)):
             col = columns[index]
             title = str(col.ls_head)
@@ -52,9 +85,14 @@ class ListBoxWindow(Gtk.Window):
                 kwargs = {'text': index}
 
             view_column = Gtk.TreeViewColumn(title, renderer, **kwargs)
-            self.treeview.append_column(view_column)
-        self.add(self.treeview)
-        self.show_all()
+            treeview.append_column(view_column)
+        return treeview
+
+    def _filter_func(self, model, iter, data):
+        state = model[iter][1]
+        if state in self.filter:
+            return False
+        return True
 
     def reload(self):
         print("drin")
