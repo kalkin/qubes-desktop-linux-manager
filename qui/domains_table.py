@@ -53,6 +53,17 @@ class ListBoxWindow(Gtk.Window):
         print("drin")
 
 
+#: Available formats. Feel free to plug your own one.
+formats = {
+    'simple': ('label', 'state', 'name', 'class', 'template', 'netvm'),
+    'network': ('label', 'state', 'name', 'netvm', 'ip', 'ipback', 'gateway'),
+    'full': ('label', 'state', 'name', 'class', 'qid', 'xid', 'uuid'),
+    #  'perf': ('name', 'state', 'cpu', 'memory'),
+    'disk': ('label', 'state', 'name', 'disk', 'priv-curr', 'priv-max',
+             'priv-used', 'root-curr', 'root-max', 'root-used'),
+}
+
+
 def main(args=None):  # pylint:disable=unused-argument
     parser = qvm_ls.get_parser()
     try:
@@ -64,7 +75,7 @@ def main(args=None):  # pylint:disable=unused-argument
     if args.fields:
         columns = [col.strip() for col in args.fields.split(',')]
     else:
-        columns = qvm_ls.formats[args.format]
+        columns = formats[args.format]
 
     # assume unknown columns are VM properties
     for col in columns:

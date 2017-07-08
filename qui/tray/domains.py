@@ -23,7 +23,6 @@ gi.require_version('AppIndicator3', '0.1')  # isort:skip
 from gi.repository import AppIndicator3 as appindicator  # isort:skip
 
 DOMAIN_MANAGER_INTERFACE = "org.qubes.DomainManager1"
-DOMAIN_MANAGER_PATH = "/org/qubes/DomainManager1"
 DBusSignalMatch = dbus.connection.SignalMatch
 
 
