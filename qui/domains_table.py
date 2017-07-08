@@ -18,7 +18,9 @@ from gi.repository import Gio, Gtk  # isort:skip pylint: disable=C0413
 
 class DomainsListStore(Gtk.ListStore):
     def __init__(self, app, columns, **kwargs):
-        params = [str, ] * len(columns)
+        params = [
+            str,
+        ] * len(columns)
         super(DomainsListStore, self).__init__(*params, **kwargs)
         for vm in app.domains:
             self.append([col.cell(vm) for col in columns])
@@ -46,8 +48,7 @@ class ListBoxWindow(Gtk.Window):
         self.store = DomainsListStore(args.app, columns)
         self.treeview = Gtk.TreeView.new_with_model(self.store)
         self.treeview.append_column(
-            Gtk.TreeViewColumn(
-                "", Gtk.CellRendererText(), text=0))
+            Gtk.TreeViewColumn("", Gtk.CellRendererText(), text=0))
         i = 0
         for col in columns:
             self.treeview.append_column(
