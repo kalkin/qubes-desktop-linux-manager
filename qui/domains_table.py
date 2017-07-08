@@ -27,13 +27,7 @@ class DomainsListStore(Gtk.ListStore):
 
 
 class ListBoxWindow(Gtk.Window):
-    def __init__(self, args):
-
-        if args.fields:
-            col_names = args.fields
-        else:
-            col_names = qvm_ls.formats[args.format]
-
+    def __init__(self, app, col_names):
         columns = []
         for col in col_names:
             col = col.strip().upper()
@@ -45,7 +39,7 @@ class ListBoxWindow(Gtk.Window):
 
         # self.grid = Gtk.Grid()
         # self.grid.set_column_homogeneous(True)
-        self.store = DomainsListStore(args.app, columns)
+        self.store = DomainsListStore(app, columns)
         self.treeview = Gtk.TreeView.new_with_model(self.store)
         self.treeview.append_column(
             Gtk.TreeViewColumn("", Gtk.CellRendererText(), text=0))
@@ -69,7 +63,18 @@ def main(args=None):  # pylint:disable=unused-argument
     except qubesadmin.exc.QubesException as e:
         parser.print_error(e.message)
         return 1
-    window = ListBoxWindow(args)
+
+    if args.fields:
+        columns = [col.strip() for col in args.fields.split(',')]
+    else:
+        columns = qvm_ls.formats[args.format]
+
+    # assume unknown columns are VM properties
+    for col in columns:
+        if col.upper() not in qvm_ls.Column.columns:
+            qvm_ls.PropertyColumn(col.lower())
+
+    window = ListBoxWindow(args.app, columns)
     window.connect("delete-event", Gtk.main_quit)
     w_file = Gio.File.new_for_path("/var/lib/qubes/qubes.xml")
     monitor = w_file.monitor_file(Gio.FileMonitorFlags.NONE, None)
