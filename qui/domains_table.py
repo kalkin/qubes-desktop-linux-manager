@@ -32,6 +32,7 @@ def netvm_label(vm):
     else:
         return vm.netvm.label.icon
 
+
 def create_icon(name):
     icon_dev = Gtk.IconTheme.get_default().load_icon(name, 16, 0)
     return Gtk.Image.new_from_pixbuf(icon_dev)
@@ -57,21 +58,33 @@ class ListBoxWindow(Gtk.Window):
         self.app = app
         self.filter = ["Halted"]
         self.col_names = col_names
+        self.add_bindings()
         hbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         hbox.add(self._button_bar())
         hbox.pack_start(self._tree_view(), True, True, 5)
         self.add(hbox)
         self.show_all()
 
+    def add_bindings(self):
+        self.accel_group = Gtk.AccelGroup()
+        self.add_accel_group(self.accel_group)
+
     def _button_bar(self):
         vbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         states = {v: k for k, v in ICON_STATE_MAP.items()}
-        for state, icon_name in states.items():
-            button = Gtk.ToggleButton(state)
-            button.set_image(create_icon(icon_name))
+        data = [('Running', "F2"), ('Transient', "F3"), ('Halted', "F4")]
+
+        for state, key in data:
+            key_id = Gtk.accelerator_parse(key).accelerator_key
+            button = Gtk.ToggleButton("%s (%s)" % (state, key))
+            icon_name = states[state]
+            icon = create_icon(icon_name)
+            button.set_image(icon)
             if state not in self.filter:
                 button.set_active(True)
             button.connect('toggled', self._toggle_filter, state)
+
+            button.add_accelerator("activate", self.accel_group, key_id, 0, 0)
             vbox.add(button)
         vbox.set_halign(Gtk.Align.CENTER)
         return vbox
@@ -100,6 +113,7 @@ class ListBoxWindow(Gtk.Window):
         self.filter_store = store.filter_new()
         self.filter_store.set_visible_func(self._filter_func)
         treeview = Gtk.TreeView.new_with_model(self.filter_store)
+        treeview.set_search_column(2)
         for index in range(0, len(columns)):
             col = columns[index]
             if col.ls_head in ['STATE', 'LABEL', 'NETVM_LABEL']:
@@ -132,8 +146,10 @@ qvm_ls.Column('NETVM_LABEL', attr=netvm_label, doc="Label icon")
 
 #: Available formats. Feel free to plug your own one.
 formats = {
-    'simple': ('state', 'label', 'name', 'class', 'template', 'netvm_label', 'netvm'),
-    'network': ('state', 'label', 'name', 'netvm_label', 'netvm', 'ip', 'ipback', 'gateway'),
+    'simple': ('state', 'label', 'name', 'class', 'template', 'netvm_label',
+               'netvm'),
+    'network': ('state', 'label', 'name', 'netvm_label', 'netvm', 'ip',
+                'ipback', 'gateway'),
     'full': ('state', 'label', 'name', 'class', 'qid', 'xid', 'uuid'),
     #  'perf': ('name', 'state', 'cpu', 'memory'),
     'disk': ('state', 'label', 'name', 'disk', 'priv-curr', 'priv-max',
