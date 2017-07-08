@@ -26,6 +26,12 @@ def state_icon_name(vm):
     return {v: k for k, v in ICON_STATE_MAP.items()}[vm.get_power_state()]
 
 
+def netvm_label(vm):
+    if vm.netvm is None:
+        return "process-stop"
+    else:
+        return vm.netvm.label.icon
+
 def create_icon(name):
     icon_dev = Gtk.IconTheme.get_default().load_icon(name, 16, 0)
     return Gtk.Image.new_from_pixbuf(icon_dev)
@@ -59,7 +65,8 @@ class ListBoxWindow(Gtk.Window):
 
     def _button_bar(self):
         vbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        for icon_name, state in ICON_STATE_MAP.items():
+        states = {v: k for k, v in ICON_STATE_MAP.items()}
+        for state, icon_name in states.items():
             button = Gtk.ToggleButton(state)
             button.set_image(create_icon(icon_name))
             if state not in self.filter:
@@ -95,7 +102,7 @@ class ListBoxWindow(Gtk.Window):
         treeview = Gtk.TreeView.new_with_model(self.filter_store)
         for index in range(0, len(columns)):
             col = columns[index]
-            if col.ls_head in ['STATE', 'LABEL']:
+            if col.ls_head in ['STATE', 'LABEL', 'NETVM_LABEL']:
                 title = str(" ")
                 renderer = Gtk.CellRendererPixbuf()
                 kwargs = {'icon-name': index}
@@ -121,11 +128,12 @@ class ListBoxWindow(Gtk.Window):
 
 qvm_ls.Column('LABEL', attr=(lambda vm: vm.label.icon), doc="Label icon")
 qvm_ls.Column('STATE', attr=state_icon_name, doc="Label icon")
+qvm_ls.Column('NETVM_LABEL', attr=netvm_label, doc="Label icon")
 
 #: Available formats. Feel free to plug your own one.
 formats = {
-    'simple': ('state', 'label', 'name', 'class', 'template', 'netvm'),
-    'network': ('state', 'label', 'name', 'netvm', 'ip', 'ipback', 'gateway'),
+    'simple': ('state', 'label', 'name', 'class', 'template', 'netvm_label', 'netvm'),
+    'network': ('state', 'label', 'name', 'netvm_label', 'netvm', 'ip', 'ipback', 'gateway'),
     'full': ('state', 'label', 'name', 'class', 'qid', 'xid', 'uuid'),
     #  'perf': ('name', 'state', 'cpu', 'memory'),
     'disk': ('state', 'label', 'name', 'disk', 'priv-curr', 'priv-max',
