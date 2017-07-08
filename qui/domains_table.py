@@ -104,11 +104,11 @@ qvm_ls.Column('LABEL', attr=(lambda vm: vm.label.icon), doc="Label icon")
 
 #: Available formats. Feel free to plug your own one.
 formats = {
-    'simple': ('label', 'state', 'name', 'class', 'template', 'netvm'),
-    'network': ('label', 'state', 'name', 'netvm', 'ip', 'ipback', 'gateway'),
-    'full': ('label', 'state', 'name', 'class', 'qid', 'xid', 'uuid'),
+    'simple': ('state', 'label', 'name', 'class', 'template', 'netvm'),
+    'network': ('state', 'label', 'name', 'netvm', 'ip', 'ipback', 'gateway'),
+    'full': ('state', 'label', 'name', 'class', 'qid', 'xid', 'uuid'),
     #  'perf': ('name', 'state', 'cpu', 'memory'),
-    'disk': ('label', 'state', 'name', 'disk', 'priv-curr', 'priv-max',
+    'disk': ('state', 'label', 'name', 'disk', 'priv-curr', 'priv-max',
              'priv-used', 'root-curr', 'root-max', 'root-used'),
 }
 
