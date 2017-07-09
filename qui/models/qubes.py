@@ -87,6 +87,7 @@ class Domain(Properties):
         pass
 
 
+
 class DomainManager(Properties,ObjectManager):
     ''' Wraper around `org.qubes.DomainManager1` '''
     _metaclass__ = _Singleton

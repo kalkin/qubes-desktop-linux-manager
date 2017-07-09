@@ -4,10 +4,16 @@
 
 from __future__ import print_function
 
+import os.path
 import signal
+
+import dbus
+import dbus.mainloop.glib
+dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
 import qubesadmin
 import qubesadmin.tools.qvm_ls as qvm_ls
+from qui.models.qubes import DomainManager
 
 import gi  # isort:skip
 gi.require_version('Gtk', '3.0')  # isort:skip
@@ -23,7 +29,10 @@ ICON_STATE_MAP = {
 
 
 def state_icon_name(vm):
-    return {v: k for k, v in ICON_STATE_MAP.items()}[vm.get_power_state()]
+    state = vm.get_power_state()
+    if state == 'Paused':
+        state = 'Halted'
+    return {v: k for k, v in ICON_STATE_MAP.items()}[state]
 
 
 def netvm_label(vm):
@@ -45,10 +54,14 @@ class DomainsListStore(Gtk.ListStore):
         ] * len(columns)
 
         super().__init__(*params, **kwargs)
+        self.columns = columns
         for vm in app.domains:
             if vm.name == 'dom0':
                 continue
-            self.append([col.cell(vm) for col in columns])
+            self.append_domain(vm)
+
+    def append_domain(self, vm):
+        self.append([col.cell(vm) for col in self.columns])
 
 
 class ListBoxWindow(Gtk.Window):
@@ -56,6 +69,7 @@ class ListBoxWindow(Gtk.Window):
         super().__init__(title="Domain List")
 
         self.app = app
+
         self.filter = {'state': ["Halted"], 'vm_type': []}
         self.col_names = col_names
         self.add_bindings()
@@ -128,8 +142,8 @@ class ListBoxWindow(Gtk.Window):
 
         # self.grid = Gtk.Grid()
         # self.grid.set_column_homogeneous(True)
-        store = DomainsListStore(self.app, columns)
-        self.filter_store = store.filter_new()
+        self.store = DomainsListStore(self.app, columns)
+        self.filter_store = self.store.filter_new()
         self.filter_store.set_visible_func(self._filter_func)
         treeview = Gtk.TreeView.new_with_model(self.filter_store)
         treeview.set_search_column(2)
@@ -156,8 +170,47 @@ class ListBoxWindow(Gtk.Window):
             return False
         return True
 
+    def _get_row(self, path):
+        qid = int(os.path.basename(path))
+        domain = None
+        for vm in self.app.domains:
+            if vm.qid == qid:
+                domain = vm
+                break
+
+        for row in self.store:
+            if row[2] == domain.name:
+                return row
+
+
     def reload(self):
         print("drin")
+
+    def halted(self, _, path, *args, **kwargs):
+        row = self._get_row(path)
+        self._set_state(row, 'Halted')
+        self.filter_store.refilter()
+
+    def started(self, _, path, *args, **kwargs):
+        row = self._get_row(path)
+        self._set_state(row, 'Running')
+        self.filter_store.refilter()
+
+    def transient(self, _, path, *args, **kwargs):
+        row = self._get_row(path)
+        self._set_state(row, 'Transient')
+        self.filter_store.refilter()
+
+    def domain_add(self, a, b, *args, **kwargs):
+        print(a)
+        print(b)
+        print(args)
+        print(kwargs)
+
+    def _set_state(self, row, state):
+        icon = {v: k for k, v in ICON_STATE_MAP.items()}[state]
+        row[0] = icon
+
 
 
 qvm_ls.Column('LABEL', attr=(lambda vm: vm.label.icon), doc="Label icon")
@@ -196,10 +249,21 @@ def main(args=None):  # pylint:disable=unused-argument
             qvm_ls.PropertyColumn(col.lower())
 
     window = ListBoxWindow(args.app, columns)
+    signal_callbacks = {
+        'Starting': window.transient,
+        'Started': window.started,
+        'Failed': window.halted,
+        'Halting': window.transient,
+        'Halted': window.halted,
+        'Unknown': window.transient,
+        'DomainAdded': window.domain_add,
+        'DomainRemoved': window.domain_add,
+    }
+    domain_manager = DomainManager()
+    for signal_name, handler_function in signal_callbacks.items():
+        domain_manager.connect_to_signal(signal_name, handler_function)
+
     window.connect("delete-event", Gtk.main_quit)
-    w_file = Gio.File.new_for_path("/var/lib/qubes/qubes.xml")
-    monitor = w_file.monitor_file(Gio.FileMonitorFlags.NONE, None)
-    monitor.connect("changed", window.reload)
     window.show_all()
     Gtk.main()
 
