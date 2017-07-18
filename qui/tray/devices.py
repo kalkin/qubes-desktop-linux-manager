@@ -312,7 +312,7 @@ class DevicesTray(Gtk.Application):
         self.devices = DeviceGroups(self.tray_menu)
 
         self.ind = appindicator.Indicator.new(
-            'Devices Widget', "gtk-preferences",
+            'Devices Widget', "media-removable",
             appindicator.IndicatorCategory.SYSTEM_SERVICES)
         self.ind.set_status(appindicator.IndicatorStatus.ACTIVE)
         self.ind.set_menu(self.tray_menu)
