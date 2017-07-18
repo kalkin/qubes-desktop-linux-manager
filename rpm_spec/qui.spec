@@ -73,6 +73,7 @@ ln -sf . %{name}-%{version}
 %py3_install
 mkdir -p $RPM_BUILD_ROOT/etc/xdg/autostart
 cp -r autostart/qui-domains.desktop $RPM_BUILD_ROOT/etc/xdg/autostart
+cp -r autostart/qui-devices.desktop $RPM_BUILD_ROOT/etc/xdg/autostart
 
 %post
 
@@ -111,3 +112,4 @@ cp -r autostart/qui-domains.desktop $RPM_BUILD_ROOT/etc/xdg/autostart
 %{_bindir}/qui-domains
 %{_bindir}/qui-devices
 /etc/xdg/autostart/qui-domains.desktop
+/etc/xdg/autostart/qui-devices.desktop
