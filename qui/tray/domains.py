@@ -3,6 +3,7 @@
 ''' A menu listing domains '''
 
 import signal
+import subprocess
 import sys
 from enum import Enum
 
@@ -96,6 +97,11 @@ class PreferencesItem(Gtk.ImageMenuItem):
 
         self.set_image(image)
         self.set_label('Preferences')
+
+        self.connect('activate', self.launch_preferences_dialog)
+
+    def launch_preferences_dialog(self, _item):
+        subprocess.call(['qubes-vm-settings', self.vm['name']])
 
 
 class LogItem(Gtk.ImageMenuItem):
