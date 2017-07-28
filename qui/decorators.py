@@ -41,7 +41,7 @@ class DomainDecorator(PropertiesDecorator):
         return label
 
     def memory(self) -> Gtk.Label:
-        label = Gtk.Label(str(self.obj['memory']) + ' MB', xalign=0)
+        label = Gtk.Label(str(int(self.obj['memory_usage']/1024)) + ' MB', xalign=0)
         self.set_margins(label)
         label.set_sensitive(False)
         return label
