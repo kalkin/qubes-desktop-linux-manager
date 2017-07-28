@@ -63,8 +63,74 @@ class LabelsModel(ObjectManager):
     def _setup_signals(self):
         pass
 
+class Device(Properties):
+    ''' Wrapper around `org.qubes.Device` Interface '''
 
-LABELS = LabelsModel()
+    def connect_to_signal(self, signal_name, handler_function):
+        ''' Handy wrapper around self.proxy.connect_to_signal'''
+        return self.proxy.connect_to_signal(
+                signal_name, handler_function,
+                dbus_interface='org.qubes.Device')
+
+    @property
+    def frontend_domain(self):
+        try:
+            vm_obj_path = self['frontend_domain']
+            return DomainManager().children[vm_obj_path]
+        except KeyError:
+            return None
+
+    @property
+    def backend_domain(self):
+        vm_obj_path = self['backend_domain']
+        return DomainManager().children[vm_obj_path]
+
+    def __getitem__(self, key: _DictKey):
+        value = super().__getitem__(key)
+        if value == '':
+            return None
+        return value
+
+    def _setup_signals(self):
+        pass
+
+
+class DevicesManager(ObjectManager):
+    ''' Wraper around `org.qubes.Devices1` '''
+    __metaclass__ = _Singleton
+
+    def __init__(self):
+        self.bus = dbus.SessionBus()  # pylint: disable=no-member
+        proxy = self.bus.get_object('org.qubes.Devices1', '/org/qubes/Devices1',
+                               follow_name_owner_changes=True)
+        super().__init__(proxy, cls=Device)
+        self.connect_to_signal("Added", self._add)
+        self.connect_to_signal("Removed", self._remove)
+        self._setup_signals()
+
+    def _add(self, obj_path: dbus.ObjectPath):
+        proxy = self.bus.get_object('org.qubes.Devices1', obj_path)
+        self.children[obj_path] = Device(proxy)
+
+    def _remove(self, obj_path: dbus.ObjectPath):
+        proxy = self.bus.get_object('org.qubes.Devices1', obj_path)
+        del self.children[obj_path]
+
+    def __getitem__(self, key: dbus.ObjectPath) -> Label:
+        return self.children[key]
+
+    def _setup_signals(self):
+        pass
+
+    def connect_to_signal(self, signal_name, handler_function):
+        ''' Handy wrapper around self.proxy.connect_to_signal'''
+        return self.proxy.connect_to_signal(
+                signal_name, handler_function,
+                dbus_interface='org.qubes.Devices1')
+
+    def disconnect_signal(self, signal_matcher):
+        ''' Handy wrapper around self.bus.remove_signal_receiver '''
+        return self.bus.remove_signal_receiver(signal_matcher)
 
 
 class Domain(Properties):
