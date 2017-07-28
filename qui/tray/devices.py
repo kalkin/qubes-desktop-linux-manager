@@ -134,7 +134,8 @@ class DomainMenu(Gtk.Menu):
         ]
 
         for vm in domains:
-            self._add_vm(vm)
+            if vm != data.backend_domain:
+                self._add_vm(vm)
 
         DOMAIN_MANAGER.connect_to_signal('Started', self.add_vm)
         DOMAIN_MANAGER.connect_to_signal('DomainAdded', self.add_vm)
