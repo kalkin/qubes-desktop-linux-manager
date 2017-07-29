@@ -26,7 +26,7 @@
 %{!?version: %define version %(cat version)}
 
 
-Name:	qui
+Name:       qubes-desktop-linux-manager
 Version:	%{version}
 Release:	1%{dist}
 Summary:	Qubes UI Applications
@@ -52,6 +52,9 @@ Requires:  qubes-dbus
 Requires:	 libappindicator-gtk3
 Requires:	 python3-systemd
 Requires:  gtk3
+
+Provides:   qui = %{version}-%{release}
+Obsoletes:  qui < 4.0.0
 
 
 %define _builddir %(pwd)
