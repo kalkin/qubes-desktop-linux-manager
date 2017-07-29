@@ -158,7 +158,8 @@ class DomainMenuItem(Gtk.ImageMenuItem):
         self.decorator = qui.decorators.DomainDecorator(vm)
 
         hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        hbox.pack_start(self.decorator.name(), True, True, 0)
+        self.name = self.decorator.name()
+        hbox.pack_start(self.name, True, True, 0)
 
         state = self._state()
 
@@ -167,7 +168,9 @@ class DomainMenuItem(Gtk.ImageMenuItem):
             spinner.start()
             hbox.pack_start(spinner, False, True, 0)
 
-        hbox.pack_start(self.decorator.memory(), False, True, 0)
+        self.memory = self.decorator.memory()
+        hbox.pack_start(self.memory, False, True, 0)
+        vm.proxy.connect_to_signal('PropertiesChanged', self._update, dbus_interface='org.freedesktop.DBus.Properties')
 
         self.add(hbox)
 
@@ -202,6 +205,14 @@ class DomainMenuItem(Gtk.ImageMenuItem):
             submenu = DebugMenu(self.vm)
         self.set_submenu(submenu)
 
+
+    def _update(self, _, changed_properties, invalidated=None):
+        if 'memory_usage' in changed_properties:
+            text = str(int(changed_properties['memory_usage']/1024)) + ' MB'
+            self.memory.set_text(text)
+
+        if 'label' in changed_properties:
+            self.set_image(self.decorator.icon())
 
 class DomainTray(Gtk.Application):
     ''' A tray icon application listing all but halted domains. ” '''
