@@ -51,8 +51,10 @@ class DeviceData():
 
         if self.dev_type == 'block':
             self.icon = 'drive-removable-media'
-            # TODO Add handling for usb & mic when they are ready
+        elif self.dev_type == 'mic':
+            self.icon = 'audio-input-microphone'
         else:
+            # TODO Add proper icon for usb
             self.icon = 'network-wired-symbolic'
 
     def attach(self, vm):
