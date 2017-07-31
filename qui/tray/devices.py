@@ -53,9 +53,10 @@ class DeviceData():
             self.icon = 'drive-removable-media'
         elif self.dev_type == 'mic':
             self.icon = 'audio-input-microphone'
+        elif self.dev_type == 'usb':
+            self.icon = 'generic-usb'
         else:
-            # TODO Add proper icon for usb
-            self.icon = 'network-wired-symbolic'
+            self.icon = 'emblem-important'
 
     def attach(self, vm):
         if self.assignment.frontend_domain:

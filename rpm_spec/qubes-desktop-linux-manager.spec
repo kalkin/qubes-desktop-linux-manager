@@ -77,6 +77,8 @@ ln -sf . %{name}-%{version}
 mkdir -p $RPM_BUILD_ROOT/etc/xdg/autostart
 cp -r autostart/qui-domains.desktop $RPM_BUILD_ROOT/etc/xdg/autostart
 cp -r autostart/qui-devices.desktop $RPM_BUILD_ROOT/etc/xdg/autostart
+mkdir -p $RPM_BUILD_ROOT/usr/share/icons/Adwaita/22x22/devices/
+cp -r icons/22x22/generic-usb.png $RPM_BUILD_ROOT/usr/share/icons/Adwaita/22x22/devices/generic-usb.png
 
 %post
 
@@ -116,3 +118,4 @@ cp -r autostart/qui-devices.desktop $RPM_BUILD_ROOT/etc/xdg/autostart
 %{_bindir}/qui-devices
 /etc/xdg/autostart/qui-domains.desktop
 /etc/xdg/autostart/qui-devices.desktop
+/usr/share/icons/Adwaita/22x22/devices/generic-usb.png
