@@ -8,7 +8,9 @@ gi.require_version('Gtk', '3.0')  # isort:skip
 from gi.repository import Gtk  # isort:skip
 
 import qubesadmin
-from qui.models.qubes import LABELS
+import qui.models.qubes
+
+LABELS = qui.models.qubes.LabelsManager()
 
 
 class PropertiesDecorator():

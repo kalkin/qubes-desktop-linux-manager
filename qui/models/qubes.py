@@ -28,7 +28,6 @@ from qui.models.dbus import ObjectManager, Properties, _DictKey
 
 # pylint: disable=too-few-public-methods,too-many-ancestors
 
-
 class Label(Properties):
     ''' Wrapper around `org.qubes.Label` Interface '''
 
@@ -47,7 +46,7 @@ class _Singleton(type):
         return cls._instances[cls]
 
 
-class LabelsModel(ObjectManager):
+class LabelsManager(ObjectManager):
     ''' Wraper around `org.qubes.Labels1` '''
     __metaclass__ = _Singleton
 
@@ -55,13 +54,18 @@ class LabelsModel(ObjectManager):
         bus = dbus.SessionBus()  # pylint: disable=no-member
         proxy = bus.get_object('org.qubes.Labels1', '/org/qubes/Labels1',
                                follow_name_owner_changes=True)
-        super(LabelsModel, self).__init__(proxy, cls=Label)
+        super().__init__(proxy, cls=Label)
         for key, value in self.children.items():
             name = key.split('/')[-1].upper()
             setattr(self, name, value)
+        self._setup_signals()
+
+    def __getitem__(self, key: dbus.ObjectPath) -> Label:
+        return self.children[key]
 
     def _setup_signals(self):
         pass
+
 
 class Device(Properties):
     ''' Wrapper around `org.qubes.Device` Interface '''
