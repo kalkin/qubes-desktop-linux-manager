@@ -249,6 +249,10 @@ class DomainTray(Gtk.Application):
 
         vm = self.domain_manager.children[vm_path]
         domain_item = DomainMenuItem(vm)
+        subprocess.call([
+            'notify-send',
+            "Domain %s is %s" % (vm['name'], str(vm['state']).lower())
+        ])
         self.tray_menu.add(domain_item)
         self.menu_items[vm_path] = domain_item
         self.tray_menu.show_all()
