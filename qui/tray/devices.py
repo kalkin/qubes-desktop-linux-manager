@@ -48,7 +48,6 @@ class DomainMenuItem(Gtk.ImageMenuItem):
         else:
             self.attached = False
 
-
         icon = LABELS[self.dbus_vm['label']]['icon']
         self.set_image(qui.decorators.create_icon(icon))
         self._hbox = qui.decorators.device_domain_hbox(self.dbus_vm,
@@ -126,7 +125,6 @@ class DomainMenu(Gtk.Menu):
         self.remove(menu_item)
         self.show_all()
 
-
     def dev_attached(self, vm_obj_path):
         menu_item = self.menu_items[vm_obj_path]
         menu_item.attach()
@@ -136,7 +134,6 @@ class DomainMenu(Gtk.Menu):
         menu_item = self.menu_items[vm_obj_path]
         menu_item.detach()
         self.attached_item = None
-
 
     def toggle(self, menu_item):
         if menu_item.attached:
@@ -161,7 +158,10 @@ class DomainMenu(Gtk.Menu):
         menu_item = self.attached_item
         menu_item.vm.devices[menu_item.dev_class].detach(menu_item.assignment)
         vm_name = menu_item.dbus_vm['name']
-        subprocess.call(['notify-send', "Detaching %s from %s" % (self.dev['ident'], vm_name)])
+        subprocess.call([
+            'notify-send',
+            "Detaching %s from %s" % (self.dev['ident'], vm_name)
+        ])
 
 
 class DeviceItem(Gtk.ImageMenuItem):
@@ -218,6 +218,8 @@ class DeviceGroups():
         if dev['dev_class'] not in [DEV_TYPES[0], DEV_TYPES[-1]]:
             self.separators[dev['dev_class']].show()
 
+        subprocess.call(['notify-send', "Device %s is available" % (dev.name)])
+
     def _position(self, dev_type):
         if dev_type == DEV_TYPES[0]:
             return 0
@@ -240,8 +242,11 @@ class DeviceGroups():
                 self.menu.remove(item)
                 self.counters[item.dev_class] -= 1
                 self._unshift_positions(item.dev_class)
-
-        self._recalc_separators()
+                self._recalc_separators()
+                subprocess.call(
+                    ['notify-send',
+                     "Device %s is removed" % (item.dev.name)])
+                return
 
     def _recalc_separators(self):
         for dev_type, size in self.counters.items():

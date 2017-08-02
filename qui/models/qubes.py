@@ -89,6 +89,13 @@ class Device(Properties):
         vm_obj_path = self['backend_domain']
         return DomainManager().children[vm_obj_path]
 
+    @property
+    def name(self):
+        name = self.backend_domain['name'] + ":" + self['ident']
+        if self["description"] != " ()":
+            name += " - " + self["description"]
+        return name
+
     def __getitem__(self, key: _DictKey):
         value = super().__getitem__(key)
         if value == '':

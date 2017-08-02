@@ -85,11 +85,7 @@ def device_hbox(dev: Device) -> Gtk.Box:
         icon = 'emblem-important'
     dev_icon = create_icon(icon)
 
-    name = dev.backend_domain['name'] + ":" + dev['ident']
-    if dev["description"] != " ()":
-        name += " - " + dev["description"]
-
-    name_label = Gtk.Label(name, xalign=0)
+    name_label = Gtk.Label(dev.name, xalign=0)
     name_label.set_max_width_chars(64)
     name_label.set_ellipsize(Pango.EllipsizeMode.END)
 
