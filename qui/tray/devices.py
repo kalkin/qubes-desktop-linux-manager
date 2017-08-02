@@ -151,7 +151,7 @@ class DomainMenu(Gtk.Menu):
 
         subprocess.call([
             'notify-send',
-            "Attaching %s to %s" % (self.dev['ident'], menu_item.vm)
+            "Attaching %s to %s" % (self.dev.name, menu_item.vm)
         ])
 
     def detach(self):
@@ -160,7 +160,7 @@ class DomainMenu(Gtk.Menu):
         vm_name = menu_item.dbus_vm['name']
         subprocess.call([
             'notify-send',
-            "Detaching %s from %s" % (self.dev['ident'], vm_name)
+            "Detaching %s from %s" % (self.dev.name, vm_name)
         ])
 
 
