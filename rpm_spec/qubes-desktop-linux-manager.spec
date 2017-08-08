@@ -81,7 +81,16 @@ mkdir -p $RPM_BUILD_ROOT/usr/share/icons/Adwaita/22x22/devices/
 cp -r icons/22x22/generic-usb.png $RPM_BUILD_ROOT/usr/share/icons/Adwaita/22x22/devices/generic-usb.png
 
 %post
+touch --no-create %{_datadir}/icons/Adwaita &>/dev/null || :
 
+%postun
+if [ $1 -eq 0 ]; then
+    touch --no-create %{_datadir}/icons/Adwaita &>/dev/null || :
+    gtk-update-icon-cache %{_datadir}/icons/Adwaita &>/dev/null || :
+fi
+
+%posttrans
+gtk-update-icon-cache %{_datadir}/icons/Adwaita &>/dev/null || :
 
 %files
 %defattr(-,root,root,-)
